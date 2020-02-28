@@ -27,7 +27,6 @@
 
 #ifdef LAB1
 uint Thread::newThreadNum = 0;
-//uint Thread::livingThreadNum = 1;
 #endif
 
 //----------------------------------------------------------------------

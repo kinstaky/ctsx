@@ -152,7 +152,6 @@ class Thread {
 
 
     static uint newThreadNum;
-    static uint livingThreadNum;
 #endif
 
     void StackAllocate(VoidFunctionPtr func, void *arg);
