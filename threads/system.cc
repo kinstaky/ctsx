@@ -150,7 +150,7 @@ Initialize(int argc, char **argv)
     currentThread = new Thread("main");
     currentThread->setStatus(RUNNING);
 #ifdef LAB1
-    LivingThreadPool->Append((void*)currentThread);
+    LivingThreadPool->Append((void*)currentThread);     // Add the first thread to pool
 #endif
 
     interrupt->Enable();

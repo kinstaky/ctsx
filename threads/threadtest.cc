@@ -55,6 +55,12 @@ ThreadTest1()
 
 
 #ifdef LAB1
+//----------------------------------------------------------------------
+// SimpleThread2
+//  Loop 3 times, yielding the CPU to another ready thread
+//  each iteration and call LivingThreadStatus
+//----------------------------------------------------------------------
+
 void SimpleThread2() {
     for (int i = 0; i != 3; ++i) {
         printf("*** thread %s\n", currentThread->getName());
@@ -65,6 +71,11 @@ void SimpleThread2() {
 }
 
 
+//----------------------------------------------------------------------
+// ThreadTest2
+//  Set up a ping-pong between three threads, by forking 2 threads
+//  to call SimpleThread2, and then calling SimpleThread2 ourselves.
+//----------------------------------------------------------------------
 
 void ThreadTest2() {
     DEBUG('t', "Entering TreadTest2\n");
@@ -81,7 +92,39 @@ void ThreadTest2() {
 #endif
 
 
+//----------------------------------------------------------------------
+// SimpleThread3
+// Just sleep
+//----------------------------------------------------------------------
+void SimpleThread3() {
+    IntStatus oldLevel = interrupt->SetLevel(IntOff);   // disable interrupts
+    currentThread->Sleep();
+    (void) interrupt->SetLevel(oldLevel);   // re-enable interrupts
+    return;
+}
 
+
+//----------------------------------------------------------------------
+// ThreadTest3
+//  fork 130 threads to show the limit on total of threads
+//----------------------------------------------------------------------
+
+void ThreadTest3() {
+    DEBUG('t', "Entering ThreadTest3\n");
+
+    Thread* threads[130];
+    int successThreads = 0;
+
+    for (int i = 0; i != 130; ++i) {
+        threads[i] = new Thread("forked thread", 1);
+        int err = threads[i]->Fork(SimpleThread3, NULL);
+        // count the successful forked
+        successThreads = err ? successThreads : successThreads+1;
+    }
+    printf("success to fork %d threads\n", successThreads);
+
+    return;
+}
 
 //----------------------------------------------------------------------
 // ThreadTest
@@ -98,6 +141,9 @@ ThreadTest()
 #ifdef LAB1
     case 2:
     ThreadTest2();
+    break;
+    case 3:
+    ThreadTest3();
     break;
 #endif
     default:

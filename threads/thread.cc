@@ -121,16 +121,16 @@ Thread::Fork(VoidFunctionPtr func, void *arg)
 
 #ifdef LAB1
 int Thread::Fork(VoidFunctionPtr func, void *arg) {
+    // limit the total living thread at MaxThreadNum
     if (LivingThreadPool->NumInList() == MaxThreadNum) {
-        DEBUG('t', "Errro: forking thread \"%s\" [%d], thread pool full", name, tid);
+        DEBUG('t', "Errro: forking thread \"%s\" [%d], thread pool full\n", name, tid);
         return -1;
     }
 
     DEBUG('t', "Forking thread \"%s\" [%d] with func = 0x%x, arg = %d\n",
         name, tid, (int)func, (int*)arg);
 
-
-    LivingThreadPool->Append((void*)this);
+    LivingThreadPool->Append((void*)this);          // Add the new thread to the pool
 
     StackAllocate(func, arg);
 
@@ -138,6 +138,7 @@ int Thread::Fork(VoidFunctionPtr func, void *arg) {
     scheduler->ReadyToRun(this);    // ReadyToRun assumes that interrupts
                     // are disabled!
     (void) interrupt->SetLevel(oldLevel);
+    return 0;
 }
 #endif
 
@@ -193,7 +194,7 @@ Thread::Finish ()
 
     threadToBeDestroyed = currentThread;
 #ifdef LAB1
-    LivingThreadPool->Remove(this);
+    LivingThreadPool->Remove(this);     // remove the finished thread from pool
 #endif
     Sleep();					// invokes SWITCH
     // not reached
