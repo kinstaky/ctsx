@@ -29,6 +29,10 @@ extern Interrupt *interrupt;			// interrupt status
 extern Statistics *stats;			// performance metrics
 extern Timer *timer;				// the hardware alarm clock
 
+#ifdef LAB1
+extern List *LivingThreadPool;   // pool of the living threads
+#endif
+
 #ifdef USER_PROGRAM
 #include "machine.h"
 extern Machine* machine;	// user program memory and registers

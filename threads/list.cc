@@ -77,6 +77,7 @@ List::~List()
 void
 List::Append(void *item)
 {
+    DEBUG('l', "0x%x append 0x%x\n", (int)this, (int)item);
     ListElement *element = new ListElement(item, 0);
 
     if (IsEmpty()) {		// list is empty
@@ -144,7 +145,7 @@ void
 List::Mapcar(VoidFunctionPtr func)
 {
     for (ListElement *ptr = first; ptr != NULL; ptr = ptr->next) {
-       DEBUG('l', "In mapcar, about to invoke %x(%x)\n", func, ptr->item);
+       DEBUG('l', "In mapcar, about to invoke 0x%x(0x%x)\n", func, ptr->item);
        (*func)((int)ptr->item);
     }
 }
