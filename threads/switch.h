@@ -150,6 +150,12 @@
 #define InitialArg      %edx
 #define WhenDonePC      %edi
 #define StartupPC       %ecx
+
+#ifdef HEYSWITCH
+#define HeyState	(_EBX/4-1)
+#define HeyReg		%ebx
+#endif
+
 #endif
 
 #endif // SWITCH_H

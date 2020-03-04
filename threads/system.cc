@@ -144,6 +144,10 @@ Initialize(int argc, char **argv)
     currentThread = new Thread("main");		
     currentThread->setStatus(RUNNING);
 
+#ifdef HEYSWITCH
+    currentThread->InjectHeyState();
+#endif
+
     interrupt->Enable();
     CallOnUserAbort(Cleanup);			// if user hits ctl-C
     

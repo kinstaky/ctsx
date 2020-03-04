@@ -102,6 +102,13 @@ class Thread {
     char* getName() { return (name); }
     void Print() { printf("%s, ", name); }
 
+#ifdef HEYSWITCH
+    void InjectHeyState();
+    void RestoreHeyState();
+private:
+    void *heyState;
+#endif
+
   private:
     // some of the private data for this class is listed above
     
@@ -141,6 +148,12 @@ void ThreadRoot();
 
 // Stop running oldThread and start running newThread
 void SWITCH(Thread *oldThread, Thread *newThread);
+
+#ifdef HEYSWITCH
+void RestoreHey(void *oldState);
+#endif
+
 }
+
 
 #endif // THREAD_H

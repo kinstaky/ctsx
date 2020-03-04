@@ -38,6 +38,9 @@ Thread::Thread(char* threadName)
     stackTop = NULL;
     stack = NULL;
     status = JUST_CREATED;
+#ifdef HEYSWITCH
+    heyState = 1;
+#endif
 #ifdef USER_PROGRAM
     space = NULL;
 #endif
@@ -282,6 +285,48 @@ Thread::StackAllocate (VoidFunctionPtr func, void *arg)
     machineState[InitialArgState] = arg;
     machineState[WhenDonePCState] = (int*)ThreadFinish;
 }
+
+
+#ifdef HEYSWITCH
+//----------------------------------------------------------------------
+// Hey
+//  A simple function just print hey, then resotre hey register
+//  It won't be called, but get in when return from SWITCH
+//----------------------------------------------------------------------
+void Hey() {
+    printf("Hey\n");
+    return;
+}
+
+//----------------------------------------------------------------------
+// Thread::InjectInitState
+//  Change the InitialPCState of thread if it's not a new thread
+//----------------------------------------------------------------------
+void Thread::InjectHeyState() {
+    if (heyState == 0) {
+        DEBUG('t', "Inject hey to %s\n", name);
+        heyState = machineState[HeyState];
+        machineState[HeyState] = (void*)Hey;
+    }
+    else {
+        DEBUG('t', "First time to %s, do not inject\n", name);
+        heyState = 0;
+    }
+    return;
+}
+
+void Thread::RestoreHeyState() {
+    DEBUG('t', "Restore Hey State of %s\n", name);
+    if (heyState != 0) {
+        //machineState[HeyState] = heyState;
+        RestoreHey(heyState);
+    }
+    heyState = 0;
+    return;
+}
+
+#endif
+
 
 #ifdef USER_PROGRAM
 #include "machine.h"

@@ -129,7 +129,7 @@ $(C_OFILES): %.o:
 	$(CC) $(CFLAGS) -c $<
 
 switch.o: ../threads/switch.s
-	$(CPP) -P $(INCPATH) $(HOST) ../threads/switch.c > swtch.s
+	$(CPP) -P $(INCPATH) $(HOST) $(DEFINES) ../threads/switch.c > swtch.s
 	$(AS) -o switch.o swtch.s
 
 depend: $(CFILES) $(HFILES)

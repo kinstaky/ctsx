@@ -336,9 +336,23 @@ SWITCH:
         movl    _EBP(%eax),%ebp
         movl    _ESP(%eax),%esp         # restore stack pointer
         movl    _PC(%eax),%eax          # restore return address into eax
-        movl    %eax,4(%esp)            # copy over the ret address on the stack
+        //movl    %eax,4(%esp)            # copy over the ret address on the stack
         movl    _eax_save,%eax
 
+#ifdef HEYSWITCH
+        test	HeyReg, HeyReg
+        je		GOTOHEY
+        pushl 	HeyReg
+GOTOHEY:
+#endif
         ret
+
+
+#ifdef HEYSWITCH
+        .globl	RestoreHey
+RestoreHey:
+        movl %esp,%ebx
+        ret
+#endif
 
 #endif
