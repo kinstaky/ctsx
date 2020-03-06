@@ -296,8 +296,6 @@ Thread::StackAllocate (VoidFunctionPtr func, void *arg)
 //----------------------------------------------------------------------
 void Hey() {
     printf("Hey\n");
-    printf("currentThread %p\n", currentThread);
-    printf("End of Hey\n");
     return;
 }
 
@@ -308,8 +306,9 @@ void Hey() {
 void Thread::InjectHeyState() {
     if (inject) {
         DEBUG('t', "Inject hey to %s\n", name);
-        //machineState[HeyStateSave] = machineState[HeyState];
+
         machineState[HeyState] = (void*)Hey;
+        //DEBUG('t', "machine[HeyState]=%p\n", machineState[HeyState]);
     }
     else {
         DEBUG('t', "First time to %s, do not inject\n", name);

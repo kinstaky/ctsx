@@ -339,23 +339,15 @@ SWITCH:
         //movl    %eax,4(%esp)            # copy over the ret address on the stack
 
 #ifdef HEYSWITCH
-        movl	%ecx,_ECX(%eax)
-        movl	36(%eax),%ecx
-        testl	%ecx,%ecx
+        movl	HeyReg,HeyRegSave(%eax)
+        movl	HeyAddr(%eax),HeyReg
+        test	HeyReg,HeyReg
         je		GOTOHEY
-        pushl 	%ecx
+        pushl 	HeyReg
 GOTOHEY:
-		movl 	_ECX(%eax), %ecx 		# restore HeyReg
+		movl 	HeyRegSave(%eax), HeyReg 		# restore HeyReg
 #endif
 		movl    _eax_save,%eax
         ret
-
-
-#ifdef HEYSWITCH
-        .globl	RestoreHey
-RestoreHey:
-        movl %esp,HeyReg
-        ret
-#endif
 
 #endif

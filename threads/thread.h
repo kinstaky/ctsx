@@ -149,10 +149,6 @@ void ThreadRoot();
 // Stop running oldThread and start running newThread
 void SWITCH(Thread *oldThread, Thread *newThread);
 
-#ifdef HEYSWITCH
-void RestoreHey(void *oldState);
-#endif
-
 }
 
 

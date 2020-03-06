@@ -152,10 +152,10 @@
 #define StartupPC       %ecx
 
 #ifdef HEYSWITCH
-#define HeyState		10
-#define HeyReg			36
-#define HeyStateSave 	(36/4-1)
-#define HeySaveReg		36
+#define HeyState		(36/4-1)
+#define HeyAddr			36
+#define HeyReg			%ecx
+#define HeyRegSave		_ECX
 #endif
 
 #endif
