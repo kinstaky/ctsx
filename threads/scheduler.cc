@@ -115,12 +115,20 @@ Scheduler::Run (Thread *nextThread)
 
 #ifdef HEYSWITCH
     nextThread->InjectHeyState();
+    printf("before SWITCH\n");
+    printf("oldThread %p\n", oldThread);
+    printf("nextThread %p\n", nextThread);
+    printf("currentThread %p\n", currentThread);
 #endif
 
     SWITCH(oldThread, nextThread);
 
 #ifdef HEYSWITCH
-    currentThread->RestoreHeyState();
+    printf("after SWITCH\n");
+    //printf("oldThread %p\n", oldThread);
+    //printf("nextThread %p\n", nextThread);
+    printf("currentThread %p\n", currentThread);
+    //currentThread->RestoreHeyState();
 #endif
 
     DEBUG('t', "Now in thread \"%s\"\n", currentThread->getName());

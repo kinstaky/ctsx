@@ -104,9 +104,9 @@ class Thread {
 
 #ifdef HEYSWITCH
     void InjectHeyState();
-    void RestoreHeyState();
+    //void RestoreHeyState();
 private:
-    void *heyState;
+    int inject;
 #endif
 
   private:

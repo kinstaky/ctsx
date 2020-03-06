@@ -39,7 +39,8 @@ Thread::Thread(char* threadName)
     stack = NULL;
     status = JUST_CREATED;
 #ifdef HEYSWITCH
-    heyState = 1;
+    inject = 0;
+    machineState[HeyState] = 0;
 #endif
 #ifdef USER_PROGRAM
     space = NULL;
@@ -295,6 +296,8 @@ Thread::StackAllocate (VoidFunctionPtr func, void *arg)
 //----------------------------------------------------------------------
 void Hey() {
     printf("Hey\n");
+    printf("currentThread %p\n", currentThread);
+    printf("End of Hey\n");
     return;
 }
 
@@ -303,27 +306,26 @@ void Hey() {
 //  Change the InitialPCState of thread if it's not a new thread
 //----------------------------------------------------------------------
 void Thread::InjectHeyState() {
-    if (heyState == 0) {
+    if (inject) {
         DEBUG('t', "Inject hey to %s\n", name);
-        heyState = machineState[HeyState];
+        //machineState[HeyStateSave] = machineState[HeyState];
         machineState[HeyState] = (void*)Hey;
     }
     else {
         DEBUG('t', "First time to %s, do not inject\n", name);
-        heyState = 0;
+        inject = 1;
     }
     return;
 }
 
-void Thread::RestoreHeyState() {
-    DEBUG('t', "Restore Hey State of %s\n", name);
-    if (heyState != 0) {
-        //machineState[HeyState] = heyState;
-        RestoreHey(heyState);
-    }
-    heyState = 0;
-    return;
-}
+// void Thread::RestoreHeyState() {
+//     DEBUG('t', "Restore Hey State of %s\n", name);
+//     if (heyState != 0) {
+//         RestoreHey(heyState);
+//     }
+//     heyState = 0;
+//     return;
+// }
 
 #endif
 
