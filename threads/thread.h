@@ -51,6 +51,11 @@ typedef unsigned int uint;
 #define MaxThreadNum 128
 #endif
 
+#ifdef LAB2
+#define MaxNice 19
+#define MinNice -20
+#endif
+
 
 // CPU register state to be saved on context switch.
 // The SPARC and MIPS only need 10 registers, but the Snake needs 18.
@@ -97,12 +102,16 @@ class Thread {
     void *machineState[MachineStateSize];  // all registers except for stackTop
 
   public:
+#ifndef LAB2
 #ifndef LAB1
     Thread(char* debugName);		// initialize a Thread
-#endif
-#ifdef LAB1
+#else   // LAB1
     Thread(char* debugName, uint threadUid = 0);         // initialize a Thread in Lab1
-#endif
+#endif  // LAB1
+#else   // LAB2
+    Thread(char *debugName, uint threadUid = 0, int threadNice = 0);
+#endif  // LAB2
+
     ~Thread(); 				// deallocate a Thread
 					// NOTE -- thread being deleted
 					// must not be running when delete
@@ -111,8 +120,7 @@ class Thread {
     // basic thread operations
 #ifndef LAB1
     void Fork(VoidFunctionPtr func, void *arg); 	// Make thread run (*func)(arg)
-#endif
-#ifdef LAB1
+#else   // LAB1
    int Fork(VoidFunctionPtr func, void *arg);      // Make thread run (*func)(arg)
                                                 // may fail if living thread number == MaxThreadNum
 #endif
@@ -121,6 +129,10 @@ class Thread {
 						// other thread is runnable
     void Sleep();  				// Put the thread to sleep and
 						// relinquish the processor
+#ifdef LAB2
+    void Sleep(uint sleepTime);     // Sleep for sleepTime time
+#endif
+
     void Finish();  				// The thread is done executing
 
     void CheckOverflow();   			// Check if thread has
@@ -129,12 +141,14 @@ class Thread {
     char* getName() { return (name); }
 #ifndef LAB1
     void Print() { printf("%s, ", name); }
-#endif
 
-#ifdef LAB1
+#else   // LAB1
     uint GetUid() { return uid; }
     uint GetTid() { return tid; }
     void Print() { printf("%d\t%d\t%s  %s\n", tid, uid, ThreadStatusName[status], name); }
+#endif
+#ifdef LAB2
+    int GetNice() { return nice; }
 #endif
 
   private:
@@ -147,11 +161,14 @@ class Thread {
     char* name;
 
 #ifdef LAB1
-    uint tid;       //ID of thread
-    uint uid;       //ID of user
+    uint tid;       // ID of thread
+    uint uid;       // ID of user
 
 
     static uint newThreadNum;
+#endif
+#ifdef LAB2
+    int nice;       // nice of thread, -20~19
 #endif
 
     void StackAllocate(VoidFunctionPtr func, void *arg);

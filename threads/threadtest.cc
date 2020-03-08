@@ -12,6 +12,9 @@
 #include "copyright.h"
 #include "system.h"
 #include "elevatortest.h"
+#ifdef LAB2
+#include "list.h"
+#endif
 
 // testnum is set in main.cc
 int testnum = 1;
@@ -89,7 +92,6 @@ void ThreadTest2() {
     SimpleThread2();
     return;
 }
-#endif
 
 
 //----------------------------------------------------------------------
@@ -125,6 +127,71 @@ void ThreadTest3() {
 
     return;
 }
+#endif
+
+#ifdef LAB2
+
+//----------------------------------------------------------------------
+// SimpleThread4
+// Sleep for specified ticks
+//----------------------------------------------------------------------
+void SimpleThread4(uint sleepTime) {
+    for (int i = 0; i != 5; ++i) {
+        printf("Thread \"%s\" will sleep %d ticks loop %d\n", currentThread->getName(), sleepTime, i);
+        currentThread->Sleep(sleepTime);
+    }
+    return;
+}
+
+
+//----------------------------------------------------------------------
+// ThreadTest4
+//  
+//----------------------------------------------------------------------
+
+
+void ThreadTest4() {
+    Thread *t1 = new Thread("nice -20", 1, -20);
+    //Thread *t2 = new Thread("nice 10", 1, -20);
+    t1->Fork(SimpleThread4, 40);
+    //t2->Fork(SimpleThread, (void*)(t2->GetNice()));
+    SimpleThread4(10);
+    return;
+}
+
+
+//----------------------------------------------------------------------
+// SimpleThread5
+// 
+//----------------------------------------------------------------------
+void SimpleThread5(char *name) {
+    printf("Thread %s begin\n", currentThread->getName());
+    if (name) {
+        Thread *t = new Thread(name, 1, 10);
+        t->Fork(SimpleThread5, NULL);
+    }
+    printf("Thread %s end\n", currentThread->getName());
+    return;
+}
+
+
+//----------------------------------------------------------------------
+// ThreadTest5
+//  
+//----------------------------------------------------------------------
+
+
+void ThreadTest5() {
+    Thread *t1 = new Thread("nice 19", 1, 19);
+    t1->Fork(SimpleThread5, "nice 10 A");
+    SimpleThread5("nice 10 B");
+    return;
+}
+
+
+
+#endif
+
 
 //----------------------------------------------------------------------
 // ThreadTest
@@ -144,6 +211,14 @@ ThreadTest()
     break;
     case 3:
     ThreadTest3();
+    break;
+#endif
+#ifdef LAB2
+    case 4:
+    ThreadTest4();
+    break;
+    case 5:
+    ThreadTest5();
     break;
 #endif
     default:

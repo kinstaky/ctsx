@@ -1,9 +1,9 @@
-// scheduler.h 
+// scheduler.h
 //	Data structures for the thread dispatcher and scheduler.
 //	Primarily, the list of threads that are ready to run.
 //
 // Copyright (c) 1992-1993 The Regents of the University of California.
-// All rights reserved.  See copyright.h for copyright notice and limitation 
+// All rights reserved.  See copyright.h for copyright notice and limitation
 // of liability and disclaimer of warranty provisions.
 
 #ifndef SCHEDULER_H
@@ -13,24 +13,67 @@
 #include "list.h"
 #include "thread.h"
 
-// The following class defines the scheduler/dispatcher abstraction -- 
-// the data structures and operations needed to keep track of which 
+#ifdef LAB2
+class Scheduler {
+  public:
+    virtual ~Scheduler() {}
+    virtual void ReadyToRun(Thread* thread) = 0;
+    virtual Thread* FindNextToRun() = 0;
+    virtual void Run(Thread* nextThread) = 0;
+    virtual void Print() = 0;
+};
+
+class PriScheduler: public Scheduler {
+public:
+  PriScheduler();
+  ~PriScheduler();
+
+  void ReadyToRun(Thread *thread);
+  Thread *FindNextToRun();
+  void Run(Thread* nextThread);
+  void Print();
+
+private:
+  List *readyList;
+};
+
+
+class DefaultScheduler: public Scheduler {
+  public:
+    DefaultScheduler();      // Initialize list of ready threads
+    ~DefaultScheduler();     // De-allocate ready list
+
+    void ReadyToRun(Thread* thread);  // Thread can be dispatched.
+    Thread* FindNextToRun();    // Dequeue first thread on the ready
+          // list, if any, and return thread.
+    void Run(Thread* nextThread); // Cause nextThread to start running
+    void Print();     // Print contents of ready list
+
+  private:
+    List *readyList;      // queue of threads that are ready to run,
+        // but not running
+};
+
+#else
+// The following class defines the scheduler/dispatcher abstraction --
+// the data structures and operations needed to keep track of which
 // thread is running, and which threads are ready but not running.
 
 class Scheduler {
   public:
-    Scheduler();			// Initialize list of ready threads 
+    Scheduler();			// Initialize list of ready threads
     ~Scheduler();			// De-allocate ready list
 
     void ReadyToRun(Thread* thread);	// Thread can be dispatched.
-    Thread* FindNextToRun();		// Dequeue first thread on the ready 
+    Thread* FindNextToRun();		// Dequeue first thread on the ready
 					// list, if any, and return thread.
     void Run(Thread* nextThread);	// Cause nextThread to start running
     void Print();			// Print contents of ready list
-    
+
   private:
     List *readyList;  		// queue of threads that are ready to run,
 				// but not running
 };
+#endif
 
 #endif // SCHEDULER_H

@@ -28,7 +28,11 @@
 
 static char *intLevelNames[] = { "off", "on"};
 static char *intTypeNames[] = { "timer", "disk", "console write", 
-			"console read", "network send", "network recv"};
+			"console read", "network send", "network recv"
+#ifdef LAB2
+            , "thread wake"
+#endif
+        };
 
 //----------------------------------------------------------------------
 // PendingInterrupt::PendingInterrupt

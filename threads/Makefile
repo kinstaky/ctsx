@@ -7,7 +7,7 @@
 # All rights reserved.  See copyright.h for copyright notice and limitation 
 # of liability and disclaimer of warranty provisions.
 
-DEFINES = -DTHREADS -DLAB1
+DEFINES = -DTHREADS -DLAB1 -DLAB2
 INCPATH = -I../threads -I../machine
 HFILES = $(THREAD_H)
 CFILES = $(THREAD_C)
@@ -538,6 +538,36 @@ elevator.o: ../machine/elevator.cc \
  ../threads/utility.h ../threads/system.h ../threads/thread.h \
  ../threads/scheduler.h ../threads/list.h ../machine/interrupt.h \
  ../machine/stats.h ../machine/timer.h
+prischeduler.o: ../threads/prischeduler.cc \
+ /usr/x86_64-linux-gnu/include/stdc-predef.h ../threads/scheduler.h \
+ ../threads/copyright.h ../threads/list.h ../threads/utility.h \
+ ../threads/bool.h ../machine/sysdep.h ../threads/copyright.h \
+ /usr/x86_64-linux-gnu/include/stdio.h \
+ /usr/x86_64-linux-gnu/include/bits/libc-header-start.h \
+ /usr/x86_64-linux-gnu/include/features.h \
+ /usr/x86_64-linux-gnu/include/sys/cdefs.h \
+ /usr/x86_64-linux-gnu/include/bits/wordsize.h \
+ /usr/x86_64-linux-gnu/include/bits/long-double.h \
+ /usr/x86_64-linux-gnu/include/gnu/stubs.h \
+ /usr/x86_64-linux-gnu/include/gnu/stubs-64.h \
+ /usr/lib/gcc/x86_64-linux-gnu/8/include/stddef.h ../threads/stdarg.h \
+ /usr/x86_64-linux-gnu/include/bits/types.h \
+ /usr/x86_64-linux-gnu/include/bits/typesizes.h \
+ /usr/x86_64-linux-gnu/include/bits/types/__fpos_t.h \
+ /usr/x86_64-linux-gnu/include/bits/types/__mbstate_t.h \
+ /usr/x86_64-linux-gnu/include/bits/types/__fpos64_t.h \
+ /usr/x86_64-linux-gnu/include/bits/types/__FILE.h \
+ /usr/x86_64-linux-gnu/include/bits/types/FILE.h \
+ /usr/x86_64-linux-gnu/include/bits/types/struct_FILE.h \
+ /usr/x86_64-linux-gnu/include/bits/types/cookie_io_functions_t.h \
+ /usr/x86_64-linux-gnu/include/bits/stdio_lim.h \
+ /usr/x86_64-linux-gnu/include/bits/sys_errlist.h \
+ /usr/x86_64-linux-gnu/include/string.h \
+ /usr/x86_64-linux-gnu/include/bits/types/locale_t.h \
+ /usr/x86_64-linux-gnu/include/bits/types/__locale_t.h \
+ /usr/x86_64-linux-gnu/include/strings.h ../threads/thread.h \
+ ../threads/system.h ../machine/interrupt.h ../threads/list.h \
+ ../machine/stats.h ../machine/timer.h ../threads/utility.h
 # DEPENDENCIES MUST END AT END OF FILE
 # IF YOU PUT STUFF HERE IT WILL GO AWAY
 # see make depend above

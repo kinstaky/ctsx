@@ -2,66 +2,57 @@
 //	Routines to choose the next thread to run, and to dispatch to
 //	that thread.
 //
-// 	These routines assume that interrupts are already disabled.
-//	If interrupts are disabled, we can assume mutual exclusion
-//	(since we are on a uniprocessor).
-//
-// 	NOTE: We can't use Locks to provide mutual exclusion here, since
-// 	if we needed to wait for a lock, and the lock was busy, we would
-//	end up calling FindNextToRun(), and that would put us in an
-//	infinite loop.
-//
-// 	Very simple implementation -- no priorities, straight FIFO.
-//	Might need to be improved in later assignments.
-//
-// Copyright (c) 1992-1993 The Regents of the University of California.
-// All rights reserved.  See copyright.h for copyright notice and limitation
-// of liability and disclaimer of warranty provisions.
+// 	The policy is to choose the thread with highest privilege,
+//  and occupy the lower ones
 
-#include "copyright.h"
 #include "scheduler.h"
 #include "system.h"
 
 #ifdef LAB2
-#define Scheduler DefaultScheduler
-#endif
+
 
 //----------------------------------------------------------------------
-// Scheduler::Scheduler
+// PriScheduler::PriScheduler
 // 	Initialize the list of ready but not running threads to empty.
 //----------------------------------------------------------------------
 
-Scheduler::Scheduler()
-{
-    readyList = new List;
+PriScheduler::PriScheduler() {
+	readyList = new List;
 }
+
+
+
 
 //----------------------------------------------------------------------
 // Scheduler::~Scheduler
 // 	De-allocate the list of ready threads.
 //----------------------------------------------------------------------
 
-Scheduler::~Scheduler()
-{
-    delete readyList;
+PriScheduler::~PriScheduler() {
+	delete readyList;
 }
+
+
 
 //----------------------------------------------------------------------
 // Scheduler::ReadyToRun
 // 	Mark a thread as ready, but not running.
-//	Put it on the ready list, for later scheduling onto the CPU.
+//	Put it on the ready list and sorted in nice value, 
+//  for later scheduling onto the CPU.
 //
 //	"thread" is the thread to be put on the ready list.
 //----------------------------------------------------------------------
 
-void
-Scheduler::ReadyToRun (Thread *thread)
-{
-    DEBUG('t', "Putting thread \"%s\" on ready list.\n", thread->getName());
+void PriScheduler::ReadyToRun(Thread* thread) {
+	DEBUG('t', "Putting thread %s with privilege %d on ready list.\n", thread->getName(), thread->GetNice());
 
     thread->setStatus(READY);
-    readyList->Append((void *)thread);
+    int newNice = thread->GetNice();
+    readyList->SortedInsert((void *)thread, newNice);
+    if (newNice < currentThread->GetNice()) currentThread->Yield();
 }
+
+
 
 //----------------------------------------------------------------------
 // Scheduler::FindNextToRun
@@ -71,11 +62,14 @@ Scheduler::ReadyToRun (Thread *thread)
 //	Thread is removed from the ready list.
 //----------------------------------------------------------------------
 
-Thread *
-Scheduler::FindNextToRun ()
-{
-    return (Thread *)readyList->Remove();
+Thread* PriScheduler::FindNextToRun() {
+	int nice;
+    return (Thread *)readyList->SortedRemove(&nice);
 }
+
+
+
+
 
 //----------------------------------------------------------------------
 // Scheduler::Run
@@ -91,15 +85,13 @@ Scheduler::FindNextToRun ()
 //	"nextThread" is the thread to be put into the CPU.
 //----------------------------------------------------------------------
 
-void
-Scheduler::Run (Thread *nextThread)
-{
+void PriScheduler::Run(Thread *nextThread) {
     Thread *oldThread = currentThread;
 
 #ifdef USER_PROGRAM			// ignore until running user programs
     if (currentThread->space != NULL) {	// if this thread is a user program,
         currentThread->SaveUserState(); // save the user's CPU registers
-	currentThread->space->SaveState();
+		currentThread->space->SaveState();
     }
 #endif
 
@@ -138,14 +130,18 @@ Scheduler::Run (Thread *nextThread)
 #endif
 }
 
+
 //----------------------------------------------------------------------
 // Scheduler::Print
 // 	Print the scheduler state -- in other words, the contents of
 //	the ready list.  For debugging.
 //----------------------------------------------------------------------
-void
-Scheduler::Print()
+
+void PriScheduler::Print()
 {
     printf("Ready list contents:\n");
     readyList->Mapcar((VoidFunctionPtr) ThreadPrint);
 }
+
+
+#endif

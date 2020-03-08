@@ -36,6 +36,7 @@ uint Thread::newThreadNum = 0;
 //
 //	"threadName" is an arbitrary string, useful for debugging.
 //----------------------------------------------------------------------
+#ifndef LAB2
 #ifndef LAB1
 Thread::Thread(char* threadName)
 {
@@ -47,9 +48,8 @@ Thread::Thread(char* threadName)
     space = NULL;
 #endif
 }
-#endif
+#else   // LAB1
 
-#ifdef LAB1
 Thread::Thread(char *threadName, uint threadUid = 0) {
     name = threadName;
     uid = threadUid;
@@ -61,7 +61,24 @@ Thread::Thread(char *threadName, uint threadUid = 0) {
     space = NULL;
 #endif
 }
+#endif  // LAB1
+#else   // LAB2
+
+Thread::Thread(char *threadName, uint threadUid = 0, int threadNice = 0) {
+    name = threadName;
+    uid = threadUid;
+    tid = newThreadNum++;
+    ASSERT(threadNice <= MaxNice && threadNice >= MinNice);
+    nice = threadNice;
+    stackTop = NULL;
+    stack = NULL;
+    status = JUST_CREATED;
+#ifdef USER_PROGRAM
+    space = NULL;
 #endif
+}
+
+#endif  // LAB2
 
 //----------------------------------------------------------------------
 // Thread::~Thread
@@ -271,6 +288,47 @@ Thread::Sleep ()
 
     scheduler->Run(nextThread); // returns when we've been signalled
 }
+
+#ifdef LAB2
+//----------------------------------------------------------------------
+// WakerHandler
+// Handler of waker, wake up the specified thread
+//----------------------------------------------------------------------
+void WakerHandler(int arg) {
+    Thread *t = (Thread*)arg;
+    scheduler->ReadyToRun(t);
+    //interrupt->YieldOnReturn();
+    return;
+}
+
+//----------------------------------------------------------------------
+// Thread::Sleep
+//  Relinquish the CPU, because the current thread is blocked
+//  waiting for input time.
+//
+//  NOTE: if there are no threads on the ready queue, that means
+//  we have no thread to run.  "Interrupt::Idle" is called
+//  to signify that we should idle the CPU until the next I/O interrupt
+//  occurs (the only thing that could cause a thread to become
+//  ready to run).
+//----------------------------------------------------------------------
+void Thread::Sleep(uint sleepTime) {
+    Thread *nextThread;
+
+    ASSERT(this == currentThread);
+
+    DEBUG('t', "Thread \"%s\" sleep for %d\n", getName(), sleepTime);
+
+    status = BLOCKED;
+    interrupt->Schedule(WakerHandler, (int)this, sleepTime,WakerInt);
+    while ((nextThread = scheduler->FindNextToRun()) == NULL) {
+        IntStatus oldLevel = interrupt->SetLevel(IntOff);
+        interrupt->Idle();
+        interrupt->SetLevel(oldLevel);
+    }
+    scheduler->Run(nextThread);
+}
+#endif
 
 //----------------------------------------------------------------------
 // ThreadFinish, InterruptEnable, ThreadPrint

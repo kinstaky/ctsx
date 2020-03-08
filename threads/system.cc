@@ -135,7 +135,11 @@ Initialize(int argc, char **argv)
     DebugInit(debugArgs);			// initialize DEBUG messages
     stats = new Statistics();			// collect statistics
     interrupt = new Interrupt;			// start up interrupt handling
+#ifndef LAB2
     scheduler = new Scheduler();		// initialize the ready queue
+#else
+    scheduler = new PriScheduler();
+#endif
 #ifdef LAB1
     LivingThreadPool = new List;        // initialize the living thread pool
 #endif
