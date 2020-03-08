@@ -14,6 +14,7 @@
 #include "thread.h"
 
 #ifdef LAB2
+// abstract class, for define the interface and use the old code
 class Scheduler {
   public:
     virtual ~Scheduler() {}
@@ -23,6 +24,7 @@ class Scheduler {
     virtual void Print() = 0;
 };
 
+//privilege scheduler, schedule by the privilege
 class PriScheduler: public Scheduler {
 public:
   PriScheduler();
@@ -38,6 +40,7 @@ private:
 };
 
 
+// default scheduler, first in first out scheduler
 class DefaultScheduler: public Scheduler {
   public:
     DefaultScheduler();      // Initialize list of ready threads

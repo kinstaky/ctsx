@@ -162,7 +162,9 @@ void ThreadTest4() {
 
 //----------------------------------------------------------------------
 // SimpleThread5
-// 
+// Aiming to show the schedule order of the threads,
+// fork another thread if name not null,
+// otherwise just print the begin and end of this thread
 //----------------------------------------------------------------------
 void SimpleThread5(char *name) {
     printf("Thread %s begin\n", currentThread->getName());
@@ -177,9 +179,16 @@ void SimpleThread5(char *name) {
 
 //----------------------------------------------------------------------
 // ThreadTest5
-//  
+// Fork 3 threads, one with nice value 19 and two with nice
+// value 10, the nice value of main thread is default as 0.
+//
+// Since the scheduler base on the privilege and the higher
+// privilege will occupy the CPU, so if a thread fork another
+// thread with higher privilege, the new thread will be
+// scheduled first and the new thread will show between the
+// begin and end of the old thread, otherwise, the old thread
+// will end before the new thread begin.
 //----------------------------------------------------------------------
-
 
 void ThreadTest5() {
     Thread *t1 = new Thread("nice 19", 1, 19);
