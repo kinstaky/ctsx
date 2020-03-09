@@ -136,7 +136,7 @@ void ThreadTest3() {
 // Sleep for specified ticks
 //----------------------------------------------------------------------
 void SimpleThread4(uint sleepTime) {
-    for (int i = 0; i != 5; ++i) {
+    for (int i = 0; i != 3; ++i) {
         printf("Thread \"%s\" will sleep %d ticks loop %d\n", currentThread->getName(), sleepTime, i);
         currentThread->Sleep(sleepTime);
     }
@@ -146,16 +146,25 @@ void SimpleThread4(uint sleepTime) {
 
 //----------------------------------------------------------------------
 // ThreadTest4
-//  
+// Fork a new thread with higher privilege, so it
+// will occupy the CPU whenever it wake up. The main
+// thread simulate being busy, but since nachos does
+// not have the real hardware interrupt, we here
+// call OneTick to advance the time and simulate being
+// busy.
+// It can be predicted that the context will switch
+// at the time the new thread wake up, even though the
+// main thread haven't yield the CPU.
 //----------------------------------------------------------------------
-
 
 void ThreadTest4() {
     Thread *t1 = new Thread("nice -20", 1, -20);
-    //Thread *t2 = new Thread("nice 10", 1, -20);
-    t1->Fork(SimpleThread4, 40);
-    //t2->Fork(SimpleThread, (void*)(t2->GetNice()));
-    SimpleThread4(10);
+    t1->Fork(SimpleThread4, 300);
+    for (int i = 0; i != 10; ++i) {
+        printf("\"%s\" busy for %d ticks\n", currentThread->getName(), i*100);
+                                            // in the system mode, ticks add 10 each time
+        for (int j = 0; j != 10; ++j) interrupt->OneTick();
+    }
     return;
 }
 
