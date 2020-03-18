@@ -212,6 +212,10 @@ void ThreadTest5() {
 #endif
 
 #ifdef LAB3
+
+//----------------------------------------------------------------------
+// global variable for testing semaphore
+//----------------------------------------------------------------------
 int msgNum;
 Semaphore *semaphoreMutex;
 Semaphore *semaphoreEmtpy;
@@ -294,13 +298,14 @@ void ThreadTest6() {
     return;
 }
 
+//----------------------------------------------------------------------
+// global variable for testing condition
+//----------------------------------------------------------------------
 
-
-
-Lock *conditionLock;
-int msgCapacity;
-Condition *conditionEmpty;
-Condition *conditionFull;
+Lock *conditionLock;                // lock of condition
+int msgCapacity;                    // capacity of the message buffer
+Condition *conditionEmpty;          // the buffer is empty
+Condition *conditionFull;           // the buffer is full
 
 //----------------------------------------------------------------------
 // semaphoreConsumer
@@ -383,13 +388,17 @@ void ThreadTest7() {
     return;
 }
 
-
-ReadWriteLock *rwlock;
-int readWriteValue;
+//----------------------------------------------------------------------
+// global variable for testing ReadWriteLock
+//----------------------------------------------------------------------
+ReadWriteLock *rwlock;      // lock
+int readWriteValue;         // value to read or write
 
 //----------------------------------------------------------------------
 // reader
-// 
+// hold the readerlock and read the value for specified times
+//
+// the parameter cnt is the specified time
 //----------------------------------------------------------------------
 
 void reader(int cnt) {
@@ -403,7 +412,9 @@ void reader(int cnt) {
 
 //----------------------------------------------------------------------
 // writer
-// 
+// hold the writerlock and write the value for specified times
+//
+// parameter cnt is the specified time
 //----------------------------------------------------------------------
 
 void writer(int cnt) {
