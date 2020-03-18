@@ -1,6 +1,6 @@
-// synch.cc 
+// synch.cc
 //	Routines for synchronizing threads.  Three kinds of
-//	synchronization routines are defined here: semaphores, locks 
+//	synchronization routines are defined here: semaphores, locks
 //   	and condition variables (the implementation of the last two
 //	are left to the reader).
 //
@@ -18,7 +18,7 @@
 // that be disabled or enabled).
 //
 // Copyright (c) 1992-1993 The Regents of the University of California.
-// All rights reserved.  See copyright.h for copyright notice and limitation 
+// All rights reserved.  See copyright.h for copyright notice and limitation
 // of liability and disclaimer of warranty provisions.
 
 #include "copyright.h"
@@ -65,14 +65,14 @@ void
 Semaphore::P()
 {
     IntStatus oldLevel = interrupt->SetLevel(IntOff);	// disable interrupts
-    
+
     while (value == 0) { 			// semaphore not available
 	queue->Append((void *)currentThread);	// so go to sleep
 	currentThread->Sleep();
-    } 
-    value--; 					// semaphore available, 
+    }
+    value--; 					// semaphore available,
 						// consume its value
-    
+
     (void) interrupt->SetLevel(oldLevel);	// re-enable interrupts
 }
 
@@ -97,8 +97,245 @@ Semaphore::V()
     (void) interrupt->SetLevel(oldLevel);
 }
 
-// Dummy functions -- so we can compile our later assignments 
-// Note -- without a correct implementation of Condition::Wait(), 
+
+#ifdef LAB3
+//----------------------------------------------------------------------
+// Lock::Lock
+// init the lock, set the name to debugName and the owner to NULL
+// prepare the queue for sleeping thread
+//
+// "debugName" is an arbitrary name, useful for debugging.
+//----------------------------------------------------------------------
+
+Lock::Lock(char *debugName) {
+    name = debugName;
+    owner = NULL;
+    queue = new List;
+}
+
+
+//----------------------------------------------------------------------
+// Lock::~Lock
+// delete waiting queue
+//----------------------------------------------------------------------
+
+Lock::~Lock() {
+    delete queue;
+}
+
+
+//----------------------------------------------------------------------
+// Lock::Acquire
+// Diable the interrupt, change the owner if owner is NULL
+// otherwise, sleep and wait in the queue, like the semaphore
+//----------------------------------------------------------------------
+void Lock::Acquire() {
+    IntStatus oldLevel = interrupt->SetLevel(IntOff);   // disable interrupts
+
+    while (owner != NULL && owner != currentThread) {            // lock hold by other thread
+        queue->Append((void *)currentThread);   // so go to sleep
+        currentThread->Sleep();
+    }
+    owner = currentThread;                    // lock available,
+                        // current thread get the lock
+
+    (void) interrupt->SetLevel(oldLevel);   // re-enable interrupts
+    return;
+}
+
+
+//----------------------------------------------------------------------
+// Lock::Release
+// Diable the interrupt, set the owner to NULL
+// If the waiting queue isn't empty, wake up the waiting thread.
+//----------------------------------------------------------------------
+void Lock::Release() {
+    IntStatus oldLevel = interrupt->SetLevel(IntOff);
+
+    Thread *thread = queue->Remove();
+
+    if (thread != NULL) {
+        scheduler->ReadyToRun(thread);
+    }
+
+    owner = NULL;                   // set the owner to NULL
+
+    interrupt->SetLevel(oldLevel);
+
+    return;
+}
+
+//----------------------------------------------------------------------
+// Lock::isHeldByCurrentThread
+// return whether the lock is held by current thread
+// the caller should consider the interrupt and schedule
+//----------------------------------------------------------------------
+bool Lock::isHeldByCurrentThread() {
+    return owner == currentThread;
+}
+
+
+//----------------------------------------------------------------------
+// Condition::Condition
+// construct the Condition, set the name and the init the waiting queue
+//----------------------------------------------------------------------
+Condition::Condition(char *dubugName) {
+    name = dubugName;
+    queue = new List;
+}
+
+//----------------------------------------------------------------------
+// Condition::~Condition
+// delete the waiting queue
+//----------------------------------------------------------------------
+
+Condition::~Condition() {
+    delete queue;
+}
+
+//----------------------------------------------------------------------
+// Condition::Wait
+// put the thread into the waiting queue after disable the interrupt
+// but check the lock before and release the lock before sleep
+//----------------------------------------------------------------------
+
+void Condition::Wait(Lock *conditionLock) {
+    IntStatus oldLevel = interrupt->SetLevel(IntOff);
+
+    ASSERT(conditionLock->isHeldByCurrentThread());
+                                            // current thread should hold the lock
+    conditionLock->Release();
+                                            // release the lock before sleep
+    queue->Append(currentThread);           // append to the waiting queue
+    currentThread->Sleep();                 // sleep
+
+    conditionLock->Acquire();               // get the lock
+
+    interrupt->SetLevel(oldLevel);
+    return;
+}
+
+//----------------------------------------------------------------------
+// Condition::Signal
+// remove a thread in the queue after disable the interrupt
+// but check the lock before and release the lock before return
+//----------------------------------------------------------------------
+void Condition::Signal(Lock *conditionLock) {
+    IntStatus oldLevel = interrupt->SetLevel(IntOff);
+
+    ASSERT(conditionLock->isHeldByCurrentThread());
+
+    Thread *thread = queue->Remove();
+    if (thread != NULL) {
+        scheduler->ReadyToRun(thread);
+    }
+
+    conditionLock->Release();
+
+    interrupt->SetLevel(oldLevel);
+
+    return;
+}
+
+
+//----------------------------------------------------------------------
+// Condition::Broadcast
+// remove all threads in the waiting queue after disable the interrupt
+// but check the lock before and release the lock at last
+//----------------------------------------------------------------------
+void Condition::Broadcast(Lock *conditionLock) {
+    IntStatus oldLevel = interrupt->SetLevel(IntOff);
+
+    ASSERT(conditionLock->isHeldByCurrentThread());
+
+    Thread *thread;
+    while (!(queue->IsEmpty())) {
+        thread = queue->Remove();
+        scheduler->ReadyToRun(thread);
+    }
+
+    conditionLock->Release();
+
+    interrupt->SetLevel(oldLevel);
+
+    return;
+}
+
+//----------------------------------------------------------------------
+// ReadWriteLock::ReadWriteLock
+// init the locks and name, number of readers
+//----------------------------------------------------------------------
+
+ReadWriteLock::ReadWriteLock(char *debugName) {
+    name = debugName;
+    readerNum = 0;
+    mutex = new Lock("ReadWriteLock mutex");
+    writeLock = new Lock("ReadWriteLock writeLock");
+}
+
+
+//----------------------------------------------------------------------
+// ReadWriteLock::~ReadWriteLock
+// delete the locks
+//----------------------------------------------------------------------
+
+ReadWriteLock::~ReadWriteLock() {
+    delete mutex;
+    delete writeLock;
+}
+
+
+//----------------------------------------------------------------------
+// ReadWriteLock::ReadAcquire()
+// get the writeLock to assure no writers, then increase the
+// number of readers
+//----------------------------------------------------------------------
+
+void ReadWriteLock::ReadAcquire() {
+    mutex->Acquire();
+    if (readerNum == 0) writeLock->Acquire();
+    readerNum++;
+    mutex->Release();
+    return;
+}
+
+
+//----------------------------------------------------------------------
+// ReadWriteLock::ReadRelease()
+// decrease the number of readers
+//----------------------------------------------------------------------
+
+void ReadWriteLock::ReadRelease() {
+    mutex->Acquire();
+    readerNum--;
+    if (readerNum == 0) writeLock->Release();
+    mutex->Release();
+}
+
+
+//----------------------------------------------------------------------
+// ReadWriteLock::WriteAcquire()
+// get the writeLock if number of readers is 0
+//----------------------------------------------------------------------
+
+void ReadWriteLock::WriteAcquire() {
+    writeLock->Acquire();
+}
+
+
+//----------------------------------------------------------------------
+// ReadWriteLock::WriteRelease()
+// release the write lock
+//----------------------------------------------------------------------
+
+void ReadWriteLock::WriteRelease() {
+    writeLock->Release();
+}
+
+
+#else
+// Dummy functions -- so we can compile our later assignments
+// Note -- without a correct implementation of Condition::Wait(),
 // the test case in the network assignment won't work!
 Lock::Lock(char* debugName) {}
 Lock::~Lock() {}
@@ -110,3 +347,4 @@ Condition::~Condition() { }
 void Condition::Wait(Lock* conditionLock) { ASSERT(FALSE); }
 void Condition::Signal(Lock* conditionLock) { }
 void Condition::Broadcast(Lock* conditionLock) { }
+#endif

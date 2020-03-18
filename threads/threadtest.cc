@@ -15,6 +15,9 @@
 #ifdef LAB2
 #include "list.h"
 #endif
+#ifdef LAB3
+#include "synch.h"
+#endif
 
 // testnum is set in main.cc
 int testnum = 1;
@@ -206,10 +209,238 @@ void ThreadTest5() {
     return;
 }
 
-
-
 #endif
 
+#ifdef LAB3
+int msgNum;
+Semaphore *semaphoreMutex;
+Semaphore *semaphoreEmtpy;
+Semaphore *semaphoreFull;
+
+//----------------------------------------------------------------------
+// semaphoreConsumer
+// consume messages until the buffer empty or get enough message
+//
+// the parameter cnt is the number of the message to consume
+//----------------------------------------------------------------------
+
+void semaphoreConsumer(int cnt) {
+    while (cnt--) {
+        semaphoreFull->P();             // get a full slock
+
+        semaphoreMutex->P();             // get the permission to change
+
+        msgNum--;
+        semaphoreEmtpy->V();             // create a empty slock
+
+        printf("%s consume 1 message, now total message %d\n", currentThread->getName(), msgNum);
+
+        semaphoreMutex->V();
+    }
+    return;
+}
+
+//----------------------------------------------------------------------
+// semaphoreProducer
+// produce messages until the buffer full or produce enough message
+//
+// the parameter cnt is the number of the message to produce
+//----------------------------------------------------------------------
+
+void semaphoreProducer(int cnt) {
+    while (cnt--) {
+        semaphoreEmtpy->P();             // get a empty slock
+
+        semaphoreMutex->P();
+
+        msgNum++;
+        semaphoreFull->V();
+
+        printf("%s produce 1 message, now total message %d\n", currentThread->getName(), msgNum);
+
+        semaphoreMutex->V();
+    }
+    return;
+}
+
+//----------------------------------------------------------------------
+// ThreadTest6
+// Test the producer and customer with semaphore method.
+// Create 2 customer and 3 producer, and the capacity of
+// the buffer is 2, so it's easy to get full and empty.
+//----------------------------------------------------------------------
+
+void ThreadTest6() {
+    msgNum = 0;
+    semaphoreMutex = new Semaphore("producer-consumer mutex sem", 1);
+    semaphoreEmtpy = new Semaphore("producer-consumer empty sem", 2);               // capacity of buffer is 2
+    semaphoreFull = new Semaphore("producer-consumer full sem", 0);
+
+    Thread *consumerA = new Thread("consumer A");
+    consumerA->Fork(semaphoreConsumer, 3);
+
+    Thread *consumerB = new Thread("consumer B");
+    consumerB->Fork(semaphoreConsumer, 4);
+
+    Thread *producerA = new Thread("producer A");
+    producerA->Fork(semaphoreProducer, 1);
+
+    Thread *producerB = new Thread("producer B");
+    producerB->Fork(semaphoreProducer, 4);
+
+    Thread *producerC = new Thread("producer C");
+    producerC->Fork(semaphoreProducer, 2);
+
+    return;
+}
+
+
+
+
+Lock *conditionLock;
+int msgCapacity;
+Condition *conditionEmpty;
+Condition *conditionFull;
+
+//----------------------------------------------------------------------
+// semaphoreConsumer
+// consume messages until the buffer empty or get enough message
+//
+// the parameter cnt is the number of the message to consume
+//----------------------------------------------------------------------
+
+void conditionConsumer(int cnt) {
+    while (cnt--) {
+        conditionLock->Acquire();
+
+        while (msgNum == 0) {
+            conditionEmpty->Wait(conditionLock);            // sleep if empty
+        }
+        msgNum--;
+        conditionFull->Broadcast(conditionLock);        // wake all waiting producer, for testing Broadcast method
+
+        printf("%s consume 1 message, now total message %d\n", currentThread->getName(), msgNum);
+
+        conditionLock->Release();
+    }
+    return;
+}
+
+
+//----------------------------------------------------------------------
+// conditionProducer
+// produce messages until the buffer full or produce enough message
+//
+// the parameter cnt is the number of the message to produce
+//----------------------------------------------------------------------
+
+void conditionProducer(int cnt) {
+    while (cnt--) {
+        conditionLock->Acquire();
+
+        while (msgNum == msgCapacity) {
+            conditionFull->Wait(conditionLock);     // sleep if full
+        }
+        msgNum++;
+        conditionEmpty->Signal(conditionLock);   // wake up one consumer, for testing Signal method
+
+        printf("%s produce 1 message, now total message %d\n", currentThread->getName(), msgNum);
+
+
+        conditionLock->Release();
+    }
+}
+
+
+//----------------------------------------------------------------------
+// ThreadTest7
+// Test the producer and customer with condition method.
+// Create 2 customer and 3 producer, and the capacity of
+// the buffer is 2, so it's easy to get full and empty.
+//----------------------------------------------------------------------
+
+void ThreadTest7() {
+    msgNum = 0;
+    msgCapacity = 2;
+    conditionLock = new Lock("producer-consumer condition lock");
+    conditionEmpty = new Condition("msg buffer empty condition");
+    conditionFull = new Condition("msg buffer full condition");
+
+    Thread *consumerA = new Thread("consumer A");
+    consumerA->Fork(conditionConsumer, 3);
+
+    Thread *consumerB = new Thread("consumer B");
+    consumerB->Fork(conditionConsumer, 4);
+
+    Thread *producerA = new Thread("producer A");
+    producerA->Fork(conditionProducer, 1);
+
+    Thread *producerB = new Thread("producer B");
+    producerB->Fork(conditionProducer, 4);
+
+    Thread *producerC = new Thread("producer C");
+    producerC->Fork(conditionProducer, 2);
+    return;
+}
+
+
+ReadWriteLock *rwlock;
+int readWriteValue;
+
+//----------------------------------------------------------------------
+// reader
+// 
+//----------------------------------------------------------------------
+
+void reader(int cnt) {
+    rwlock->ReadAcquire();
+    while (cnt--) {
+        printf("%s read value %d\n", currentThread->getName(), readWriteValue);
+        currentThread->Yield();
+    }
+    rwlock->ReadRelease();
+}
+
+//----------------------------------------------------------------------
+// writer
+// 
+//----------------------------------------------------------------------
+
+void writer(int cnt) {
+    rwlock->WriteAcquire();
+    while (cnt--) {
+        readWriteValue++;
+        printf("%s write value as %d\n", currentThread->getName(), readWriteValue);
+        currentThread->Yield();
+    }
+    rwlock->WriteRelease();
+}
+
+
+//----------------------------------------------------------------------
+// ThreadTest8
+// Test the reader-writer lock
+//----------------------------------------------------------------------
+
+void ThreadTest8() {
+    rwlock = new ReadWriteLock("read write lock");
+
+    Thread *writerA = new Thread("writer A");
+    writerA->Fork(writer, 3);
+
+    Thread *readerA = new Thread("reader A");
+    readerA->Fork(reader, 3);
+
+    Thread *readerB = new Thread("reader B");
+    readerB->Fork(reader, 3);
+
+    Thread *writerB = new Thread("writer B");
+    writerB->Fork(writer, 3);
+
+    return;
+}
+
+#endif
 
 //----------------------------------------------------------------------
 // ThreadTest
@@ -237,6 +468,17 @@ ThreadTest()
     break;
     case 5:
     ThreadTest5();
+    break;
+#endif
+#ifdef LAB3
+    case 6:
+    ThreadTest6();
+    break;
+    case 7:
+    ThreadTest7();
+    break;
+    case 8:
+    ThreadTest8();
     break;
 #endif
     default:

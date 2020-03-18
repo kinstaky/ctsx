@@ -140,6 +140,9 @@ Initialize(int argc, char **argv)
 #else
     scheduler = new PriScheduler();
 #endif
+#ifdef LAB3
+    scheduler = new DefaultScheduler();
+#endif
 #ifdef LAB1
     LivingThreadPool = new List;        // initialize the living thread pool
 #endif

@@ -80,6 +80,10 @@ class Lock {
   private:
     char* name;				// for debugging
     // plus some other stuff you'll need to define
+#ifdef LAB3
+    Thread *owner;
+    List *queue;
+#endif
 };
 
 // The following class defines a "condition variable".  A condition
@@ -132,5 +136,44 @@ class Condition {
   private:
     char* name;
     // plus some other stuff you'll need to define
+#ifdef LAB3
+    List *queue;
+#endif
 };
+
+// The following class defines a simple read-write lock.
+// The readers can get the lock when there are no writers.
+// The writers can get the lock when there are no writers or readers.
+// This class bases on lock. These only operations in ReadWriteLock:
+//
+//  ReadAcquire() -- Acquire the reader's lock, and block other writers
+//
+//  ReadRelease() -- Release the reader's lock
+//
+//  WriteAcquire() -- Acquire the writer's lock, and block everyone
+//
+//  WriteRelease() -- Release the wirter's lock
+//
+// Note that this class may cause the starve of the writer,
+// since it didn't consider the writers that waiting for the readers.
+// It just lets the readers acquire the lock even some writers
+// are waiting.
+
+class ReadWriteLock {
+public:
+    ReadWriteLock(char *debugName);
+    ~ReadWriteLock();
+
+    void ReadAcquire();
+    void ReadRelease();
+
+    void WriteAcquire();
+    void WriteRelease();
+private:
+    char *name;
+    Lock *mutex;
+    Lock *writeLock;
+    int readerNum;
+};
+
 #endif // SYNCH_H
