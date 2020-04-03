@@ -315,7 +315,7 @@ void ReadWriteLock::ReadRelease() {
 
 //----------------------------------------------------------------------
 // ReadWriteLock::WriteAcquire()
-// get the writeLock if number of readers is 0
+// get the writeLock
 //----------------------------------------------------------------------
 
 void ReadWriteLock::WriteAcquire() {
