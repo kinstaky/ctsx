@@ -14,6 +14,8 @@
 #include "addrspace.h"
 #include "synch.h"
 
+
+
 //----------------------------------------------------------------------
 // StartProcess
 // 	Run a user program.  Open the executable, load it into
@@ -30,7 +32,8 @@ StartProcess(char *filename)
 	printf("Unable to open file %s\n", filename);
 	return;
     }
-    space = new AddrSpace(executable);    
+
+    space = new AddrSpace(executable);
     currentThread->space = space;
 
     delete executable;			// close file
@@ -43,6 +46,21 @@ StartProcess(char *filename)
 					// the address space exits
 					// by doing the syscall "exit"
 }
+
+#ifdef LAB4
+//----------------------------------------------------------------------
+// StartNProcess
+// Run several process by creating several threads
+// and fork StartProcess,default N = 2
+//----------------------------------------------------------------------
+void StartNProcess(char *filename, int count = 2) {
+	for (int i = 0; i != count; ++i) {
+		Thread *t1 = new Thread("user thread");
+		t1->Fork(StartProcess, (void*)filename);
+	}
+	return;
+}
+#endif
 
 // Data structures needed for the console test.  Threads making
 // I/O requests wait on a Semaphore to delay until the I/O completes.

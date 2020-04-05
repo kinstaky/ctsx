@@ -46,6 +46,103 @@ SwapHeader (NoffHeader *noffH)
 }
 
 //----------------------------------------------------------------------
+// VirtualDisk::VirtalDisk
+// Simulate the disk, just allocate space from the memory
+// should be repalced by the filesystem in the next lab
+//
+// "size" is the size(byte) of the virtual disk
+//----------------------------------------------------------------------
+
+VirtualDisk::VirtualDisk(unsigned int size) {
+    diskSize = size;
+    data = new char[size];
+    bzero(data, size);
+}
+
+//----------------------------------------------------------------------
+// VirtualDisk::~VirtualDisk
+// delete the space
+//----------------------------------------------------------------------
+
+VirtualDisk::~VirtualDisk() {
+    delete[] data;
+}
+
+//----------------------------------------------------------------------
+// VirtualDisk::DiskMemory
+// return the address of the disk memory
+//
+// "offset": the offset from the data
+//----------------------------------------------------------------------
+
+char* VirtualDisk::DiskMemory(int offset = 0) {
+    ASSERT(offset >= 0);
+    ASSERT(offset < diskSize);
+    return data+offset;
+}
+
+//----------------------------------------------------------------------
+// VirtualDisk::Write
+// read from memory and write to the virtual disk
+// return the actual size written(not finished)
+//
+// "memory": the address of source data
+// "virtualAddr": the offset of the destination data
+// "size": the size(byte) to write
+//----------------------------------------------------------------------
+int VirtualDisk::Write(char *memory, int virtualAddr, int size) {
+    ASSERT(virtualAddr < diskSize);
+    ASSERT(virtualAddr >= 0);
+
+    int asize = virtualAddr + size - diskSize;
+    if (asize > 0) asize = size - asize;
+    else asize = size;
+    for (int i = 0; i != asize; ++i) {
+        data[virtualAddr+i] = memory[i];
+    }
+    //printf("write 0x%x, size %d\n", virtualAddr, asize);
+    return asize;
+}
+
+//----------------------------------------------------------------------
+// VirtualDisk::Read
+// read from the virtual disk and write to the momory
+// return the actual size read(not finished)
+//
+// "memory": the address of destination data
+// "virtualAddr": the offset of the source data
+// "size": the size(byte) to read
+//----------------------------------------------------------------------
+int VirtualDisk::Read(char *memory, int virtualAddr, int size) {
+    ASSERT(virtualAddr < diskSize);
+    ASSERT(virtualAddr >= 0);
+
+    int asize = virtualAddr + size - diskSize;
+    if (asize > 0) asize = size - asize;
+    else asize = size;
+    for (int i = 0; i != asize; ++i) {
+        memory[i] = data[virtualAddr+i];
+    }
+    //printf("read 0x%x, size %d\n", virtualAddr, asize);
+    return asize;
+}
+
+
+//----------------------------------------------------------------------
+// VirtualDisk::Printf
+// print the whole memory of disk
+//----------------------------------------------------------------------
+
+void VirtualDisk::Print() {
+    for (int i = 0; i != diskSize; ++i) {
+        printf("%02x", (unsigned char)data[i]);
+        if (i % 16 == 15) printf("\n");
+        else if (i % 2 == 1) printf(" ");
+    }
+}
+
+
+//----------------------------------------------------------------------
 // AddrSpace::AddrSpace
 // 	Create an address space to run a user program.
 //	Load the program from a file "executable", and set everything
@@ -78,26 +175,35 @@ AddrSpace::AddrSpace(OpenFile *executable)
     numPages = divRoundUp(size, PageSize);
     size = numPages * PageSize;
 
+#ifndef LAB4
     ASSERT(numPages <= NumPhysPages);		// check we're not trying
 						// to run anything too big --
 						// at least until we have
 						// virtual memory
+#endif
 
     DEBUG('a', "Initializing address space, num pages %d, size %d\n", 
 					numPages, size);
 // first, set up the translation 
     pageTable = new TranslationEntry[numPages];
     for (i = 0; i < numPages; i++) {
-	pageTable[i].virtualPage = i;	// for now, virtual page # = phys page #
-	pageTable[i].physicalPage = i;
-	pageTable[i].valid = TRUE;
-	pageTable[i].use = FALSE;
-	pageTable[i].dirty = FALSE;
-	pageTable[i].readOnly = FALSE;  // if the code segment was entirely on 
-					// a separate page, we could set its 
-					// pages to be read-only
+#ifdef LAB4
+        pageTable[i].virtualPage = i;
+        pageTable[i].physicalPage = -1;
+        pageTable[i].valid = false;      // lazy loading, all not available
+#else
+    	pageTable[i].virtualPage = i;	// for now, virtual page # = phys page #
+    	pageTable[i].physicalPage = i;
+        pageTable[i].valid = TRUE;
+#endif
+    	pageTable[i].use = FALSE;
+    	pageTable[i].dirty = FALSE;
+    	pageTable[i].readOnly = FALSE;  // if the code segment was entirely on 
+    					// a separate page, we could set its 
+    					// pages to be read-only
     }
-    
+
+#ifndef LAB4
 // zero out the entire address space, to zero the unitialized data segment 
 // and the stack segment
     bzero(machine->mainMemory, size);
@@ -115,7 +221,26 @@ AddrSpace::AddrSpace(OpenFile *executable)
         executable->ReadAt(&(machine->mainMemory[noffH.initData.virtualAddr]),
 			noffH.initData.size, noffH.initData.inFileAddr);
     }
-
+    if (noffH.code.size > 0) printf("noffH.code.inFileAddr 0x%x, noffH.code.size %x\n", noffH.code.inFileAddr, noffH.code.size);
+    if (noffH.initData.size > 0) printf("noffH.initData.inFileAddr 0x%x, noffH.initData.size %x\n", noffH.initData.inFileAddr, noffH.initData.size);
+    if (noffH.uninitData.size > 0) printf("noffH.uninitData.inFileAddr 0x%x, noffH.uninitData.size %x\n", noffH.uninitData.inFileAddr, noffH.uninitData.size);
+#else
+    // set the virtual disk and save the file into the disk
+    disk = new VirtualDisk(size);
+    if (noffH.code.size > 0) {
+        DEBUG('a', "Initializing code segment, at 0x%x, size %d\n", 
+            noffH.code.virtualAddr, noffH.code.size);
+        executable->ReadAt(disk->DiskMemory(noffH.code.virtualAddr),
+            noffH.code.size, noffH.code.inFileAddr);
+    }
+    if (noffH.initData.size > 0) {
+        DEBUG('a', "Initializing data segment, at 0x%x, size %d\n", 
+            noffH.initData.virtualAddr, noffH.initData.size);
+        executable->ReadAt(disk->DiskMemory(noffH.initData.virtualAddr),
+            noffH.initData.size, noffH.initData.inFileAddr);
+    }
+    //disk->Print();
+#endif
 }
 
 //----------------------------------------------------------------------
@@ -168,8 +293,11 @@ AddrSpace::InitRegisters()
 //	For now, nothing!
 //----------------------------------------------------------------------
 
-void AddrSpace::SaveState() 
-{}
+void AddrSpace::SaveState() {
+#ifdef LAB4
+    machine->ClearVirtualPages();
+#endif
+}
 
 //----------------------------------------------------------------------
 // AddrSpace::RestoreState
@@ -183,4 +311,7 @@ void AddrSpace::RestoreState()
 {
     machine->pageTable = pageTable;
     machine->pageTableSize = numPages;
+#ifdef LAB4
+    machine->disk = disk;
+#endif
 }

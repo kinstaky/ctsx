@@ -54,10 +54,116 @@ ExceptionHandler(ExceptionType which)
     int type = machine->ReadRegister(2);
 
     if ((which == SyscallException) && (type == SC_Halt)) {
-	DEBUG('a', "Shutdown, initiated by user program.\n");
-   	interrupt->Halt();
-    } else {
-	printf("Unexpected user mode exception %d %d\n", which, type);
-	ASSERT(FALSE);
+		DEBUG('a', "Shutdown, initiated by user program.\n");
+   		interrupt->Halt();
+   	}
+#ifdef LAB4
+   	else if (which == SyscallException) {
+   		if (type == SC_Exit) {
+   			printf("Exit code: %d\n", machine->registers[4]);
+   			DEBUG('a', "Exit %d\n", machine->registers[4]);
+   			currentThread->Finish();
+   			//interrupt->Halt();
+   		}
+   	}
+    else if (which == PageFaultException) {
+    	machine->TlbReplace();
+    	stats->numTLBMiss++;
+    	//printf("PageFaultException: vpn = %d, addr = %x\n", (unsigned)(machine->registers[BadVAddrReg]/PageSize), (unsigned)machine->registers[BadVAddrReg]);
+    }
+#endif
+    else {
+		printf("Unexpected user mode exception %d %d\n", which, type);
+		ASSERT(FALSE);
     }
 }
+
+
+#ifdef LAB4
+void Machine::TlbReplace() {
+	unsigned int vpn = (unsigned int)(registers[BadVAddrReg] / PageSize);
+	unsigned int ppn = -1;
+	TranslationEntry *tlbEntry = NULL;
+	for (int i = 0; i != TLBSize; ++i) {
+		if (!tlb[i].valid) {
+			tlbEntry = &tlb[i];
+			tlbScheduler->Insert(tlbEntry);
+			break;			// TLB not full
+		}
+	}
+
+	if (!tlbEntry) {			// TLB full, replace one
+		tlbEntry = tlbScheduler->Replace();
+		if (pageTable[tlbEntry->virtualPage].valid) {
+			// set the flags
+			if (tlbEntry->dirty) pageTableScheduler->Dirty(&pageTable[tlbEntry->virtualPage]);
+			if (tlbEntry->use) pageTableScheduler->Use(&pageTable[tlbEntry->virtualPage]);
+		}
+	}
+
+	if (pageTable[vpn].valid) {
+		ppn = pageTable[vpn].physicalPage;
+		pageTableScheduler->Use(&pageTable[vpn]);	// Found the page frame in pagetable
+	}
+
+	if (ppn == -1) {			// page frame fault, load from disk
+		// set the flags first
+		for (int i = 0; i != TLBSize; ++i) {
+			if (tlb[i].valid) {
+				ASSERT(pageTable[tlb[i].virtualPage].valid);
+				if (tlb[i].dirty) pageTableScheduler->Dirty(&pageTable[tlb[i].virtualPage]);
+				if (tlb[i].use) pageTableScheduler->Use(&pageTable[tlb[i].virtualPage]);
+			}
+		}
+
+		// repalce the page table
+		PageTableReplace(vpn, &ppn);
+	}
+
+
+	tlbEntry->valid = true;
+	tlbEntry->dirty = false;
+	tlbEntry->readOnly = false;
+	tlbEntry->use = false;
+	tlbEntry->virtualPage = vpn;
+	tlbEntry->physicalPage = ppn;
+}
+
+void Machine::PageTableReplace(int vpn, int *ppn) {
+	TranslationEntry *entry;
+	if (memoryMap->NumClear() == 0) {			// no frame available
+		entry = pageTableScheduler->Remove();
+		*ppn = entry->physicalPage;
+		for (int i = 0; i != TLBSize; ++i) {
+			if (tlb[i].valid && tlb[i].virtualPage == entry->virtualPage) {
+				tlbScheduler->Remove(&tlb[i]);
+				if (tlb[i].dirty) entry->dirty = true;
+			}
+		}
+		if (entry->dirty) {
+			ASSERT(PageSize == disk->Write(mainMemory+(entry->physicalPage)*PageSize, (entry->virtualPage)*PageSize, PageSize));
+		}
+		entry->valid = false;
+		//printf("replace %d\n", *ppn);
+	}
+	else {
+		*ppn = memoryMap->Find();
+		//printf("locate %d\n", *ppn);
+	}
+
+
+
+	pageTableScheduler->Insert(&pageTable[vpn]);
+
+	ASSERT(PageSize == disk->Read(mainMemory+(*ppn)*PageSize, vpn*PageSize, PageSize));
+
+	pageTable[vpn].valid = true;
+	pageTable[vpn].dirty = false;
+	pageTable[vpn].readOnly = false;
+	pageTable[vpn].use = false;
+	pageTable[vpn].physicalPage = *ppn;
+
+}
+
+
+#endif
