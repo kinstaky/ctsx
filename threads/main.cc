@@ -64,6 +64,10 @@ extern void Print(char *file), PerformanceTest(void);
 extern void StartProcess(char *file), ConsoleTest(char *in, char *out);
 extern void MailTest(int networkID);
 
+#ifdef LAB4
+extern void StartNProcess(char *file, int count);
+#endif
+
 //----------------------------------------------------------------------
 // main
 // 	Bootstrap the operating system kernel.  
@@ -112,7 +116,11 @@ main(int argc, char **argv)
 #ifdef USER_PROGRAM
         if (!strcmp(*argv, "-x")) {        	// run a user program
 	    ASSERT(argc > 1);
+#ifdef LAB4
+	    	StartNProcess(*(argv + 1), 2);
+#else
             StartProcess(*(argv + 1));
+#endif
             argCount = 2;
         } else if (!strcmp(*argv, "-c")) {      // test the console
 	    if (argc == 1)
@@ -125,7 +133,7 @@ main(int argc, char **argv)
 	    interrupt->Halt();		// once we start the console, then 
 					// Nachos will loop forever waiting 
 					// for console input
-	}
+		}
 #endif // USER_PROGRAM
 #ifdef FILESYS
 	if (!strcmp(*argv, "-cp")) { 		// copy from UNIX to Nachos

@@ -65,10 +65,21 @@ Machine::Machine(bool debug)
     tlb = new TranslationEntry[TLBSize];
     for (i = 0; i < TLBSize; i++)
 	tlb[i].valid = FALSE;
+#ifndef LAB4
     pageTable = NULL;
+#endif
 #else	// use linear page table
     tlb = NULL;
     pageTable = NULL;
+#endif
+#ifdef LAB4
+    // tlbSchduler = new EntryFifo("TLB scheduler");
+    // tlbScheduler = new EntryLru("TLB scheduler");
+    tlbScheduler = new EntryClock("TLB scheduler");
+    tlbScheduler->SetStart(tlb);
+    pageTableScheduler = new EntryClock("PageTable scheduler");
+    memoryMap = new BitMap(NumPhysPages);
+    disk = NULL;
 #endif
 
     singleStep = debug;
@@ -212,3 +223,56 @@ void Machine::WriteRegister(int num, int value)
 	registers[num] = value;
     }
 
+#ifdef LAB4
+//----------------------------------------------------------------------
+// Machine::getNewFrame
+// find a new frame with bitmap
+//----------------------------------------------------------------------
+
+int Machine::getNewFrame() {
+    int index = memoryMap->Find();
+    if (index != -1) return index;  // find new page
+    return index;
+}
+
+
+//----------------------------------------------------------------------
+// Machine::UseReversePageTable
+// use reverse page table
+//----------------------------------------------------------------------
+
+void Machine::UseReversePageTable() {
+    reversePageTable = true;
+    return;
+}
+
+
+//----------------------------------------------------------------------
+// Machine::ClearVirtualPages
+// Clear the TLB and page table, then write back the dirty page to
+// the disk (or virtual disk)
+//----------------------------------------------------------------------
+
+void Machine::ClearVirtualPages() {
+    // Clear TLB and save them
+    for (int i = 0; i != TLBSize; ++i) {
+        if (tlb[i].valid) {
+            // assure all the dirty page write back to the disk
+            if (tlb[i].dirty) pageTable[tlb[i].virtualPage].dirty = true;
+            tlbScheduler->Remove(&tlb[i]);
+        }
+    }
+
+    TranslationEntry *entry = pageTableScheduler->Remove();
+    while (entry) {
+        ASSERT(entry->valid);
+        entry->valid = false;
+        if (entry->dirty) {
+            disk->Write(mainMemory+entry->physicalPage*PageSize, entry->virtualPage*PageSize, PageSize);
+        }
+        entry = pageTableScheduler->Remove();
+    }
+}
+
+
+#endif

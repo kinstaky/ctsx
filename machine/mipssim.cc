@@ -30,6 +30,9 @@ static void Mult(int a, int b, bool signedArith, int* hiPtr, int* loPtr);
 void
 Machine::Run()
 {
+#ifdef LAB4
+	pageTableScheduler->SetStart(pageTable);
+#endif
     Instruction *instr = new Instruction;  // storage for decoded instruction
 
     if(DebugIsEnabled('m'))

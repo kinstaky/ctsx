@@ -198,10 +198,14 @@ Machine::Translate(int virtAddr, int* physAddr, int size, bool writing)
 	DEBUG('a', "alignment problem at %d, size %d!\n", virtAddr, size);
 	return AddressErrorException;
     }
-    
+
+#ifdef LAB4
+    ASSERT(pageTable != NULL && tlb != NULL);
+#else
     // we must have either a TLB or a page table, but not both!
     ASSERT(tlb == NULL || pageTable == NULL);	
     ASSERT(tlb != NULL || pageTable != NULL);	
+#endif
 
 // calculate the virtual page number, and offset within the page,
 // from the virtual address
@@ -222,9 +226,14 @@ Machine::Translate(int virtAddr, int* physAddr, int size, bool writing)
     } else {
         for (entry = NULL, i = 0; i < TLBSize; i++)
     	    if (tlb[i].valid && (tlb[i].virtualPage == vpn)) {
-		entry = &tlb[i];			// FOUND!
-		break;
-	    }
+				entry = &tlb[i];			// FOUND!
+#ifdef LAB4
+				ASSERT(pageTable[vpn].physicalPage == tlb[i].physicalPage);
+				ASSERT(pageTable[vpn].valid);
+				stats->numTLBHit++;
+#endif
+				break;
+			}
 	if (entry == NULL) {				// not found
     	    DEBUG('a', "*** no valid TLB entry found for this virtual page!\n");
     	    return PageFaultException;		// really, this is a TLB fault,
@@ -245,10 +254,15 @@ Machine::Translate(int virtAddr, int* physAddr, int size, bool writing)
 	DEBUG('a', "*** frame %d > %d!\n", pageFrame, NumPhysPages);
 	return BusErrorException;
     }
+#ifdef LAB4
+    tlbScheduler->Use(entry);
+    if (writing) tlbScheduler->Dirty(entry);
+#else
     entry->use = TRUE;		// set the use, dirty bits
     if (writing)
 	entry->dirty = TRUE;
-    *physAddr = pageFrame * PageSize + offset;
+#endif
+   	*physAddr = pageFrame * PageSize + offset;
     ASSERT((*physAddr >= 0) && ((*physAddr + size) <= MemorySize));
     DEBUG('a', "phys addr = 0x%x\n", *physAddr);
     return NoException;

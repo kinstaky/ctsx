@@ -39,6 +39,9 @@ Statistics::Print()
     printf("Console I/O: reads %d, writes %d\n", numConsoleCharsRead, 
 	numConsoleCharsWritten);
     printf("Paging: faults %d\n", numPageFaults);
+#ifdef LAB4
+    printf("TLB: Hit %d, Miss %d\n", numTLBHit, numTLBMiss);
+#endif
     printf("Network I/O: packets received %d, sent %d\n", numPacketsRecvd, 
 	numPacketsSent);
 }

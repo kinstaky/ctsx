@@ -4,7 +4,7 @@
  of liability and disclaimer of warranty provisions.
  */
 
-#include "copyright.h"
+//#include "copyright.h"
 
 char *normalops[] = {
 	"special",

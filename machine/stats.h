@@ -36,6 +36,11 @@ class Statistics {
     int numPacketsSent;		// number of packets sent over the network
     int numPacketsRecvd;	// number of packets received over the network
 
+#ifdef LAB4
+    int numTLBHit;
+    int numTLBMiss;
+#endif
+
     Statistics(); 		// initialize everything to zero
 
     void Print();		// print collected statistics

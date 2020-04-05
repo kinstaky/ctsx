@@ -25,6 +25,9 @@
 #include "utility.h"
 #include "translate.h"
 #include "disk.h"
+#include "list.h"
+#include "bitmap.h"
+#include "addrspace.h"
 
 // Definitions related to the size, and format of user memory
 
@@ -91,6 +94,78 @@ class Instruction {
                      // Immediates are sign-extended.
 };
 
+
+#ifdef LAB4
+// The following class defines the scheduler of translation entty
+// for TLB and pagetable
+class TranslationEntryScheduler {
+public:
+    virtual ~TranslationEntryScheduler() {}
+    virtual TranslationEntry* Replace() = 0;
+    virtual TranslationEntry* Remove() = 0;
+    virtual void Remove(TranslationEntry *entry) = 0;
+    virtual void Insert(TranslationEntry *entry) = 0;
+    virtual void Use(TranslationEntry *entry) = 0;
+    virtual void Dirty(TranslationEntry *entry) = 0;
+    char* GetName() {return name; }
+    void SetStart(TranslationEntry *entry);     // for debug
+protected:
+    char *name;
+    TranslationEntry *start;        // for debug
+};
+
+// FIFO scheduler
+class EntryFifo: public TranslationEntryScheduler {
+public:
+    EntryFifo(char *debugname);
+    ~EntryFifo();
+
+    TranslationEntry* Replace();
+    TranslationEntry* Remove();
+    void Remove(TranslationEntry *entry);
+    void Insert(TranslationEntry *entry);
+    void Use(TranslationEntry *entry);
+    void Dirty(TranslationEntry *entry);
+private:
+    List *list;
+};
+
+
+// LRU TLB scheduler
+class EntryLru: public TranslationEntryScheduler {
+public:
+    EntryLru(char *debugname);
+    ~EntryLru();
+
+    TranslationEntry *Replace();
+    TranslationEntry *Remove();
+    void Remove(TranslationEntry *entry);
+    void Insert(TranslationEntry *entry);
+    void Use(TranslationEntry *entry);
+    void Dirty(TranslationEntry *entry);
+private:
+    List *list;
+};
+
+
+// Clock TLB scheduler
+class EntryClock: public TranslationEntryScheduler {
+public:
+    EntryClock(char *debugname);
+    ~EntryClock();
+
+    TranslationEntry *Replace();
+    TranslationEntry *Remove();
+    void Remove(TranslationEntry *entry);
+    void Insert(TranslationEntry *entry);
+    void Use(TranslationEntry *entry);
+    void Dirty(TranslationEntry *entry);
+private:
+    List *list;
+};
+
+#endif
+
 // The following class defines the simulated host workstation hardware, as 
 // seen by user programs -- the CPU registers, main memory, etc.
 // User programs shouldn't be able to tell that they are running on our 
@@ -146,6 +221,15 @@ class Machine {
     void Debugger();		// invoke the user program debugger
     void DumpState();		// print the user CPU and memory state 
 
+#ifdef LAB4
+    void TlbReplace();
+    void PageTableReplace(int vpn, int *ppn);
+    void UseReversePageTable();
+    void ClearVirtualPages();
+
+    VirtualDisk *disk;
+    BitMap *memoryMap;
+#endif
 
 // Data structures -- all of these are accessible to Nachos kernel code.
 // "public" for convenience.
@@ -187,6 +271,13 @@ class Machine {
 				// simulated instruction
     int runUntilTime;		// drop back into the debugger when simulated
 				// time reaches this value
+#ifdef LAB4
+    int getNewFrame();
+
+    TranslationEntryScheduler *tlbScheduler;
+    TranslationEntryScheduler *pageTableScheduler;
+    bool reversePageTable;
+#endif
 };
 
 extern void ExceptionHandler(ExceptionType which);

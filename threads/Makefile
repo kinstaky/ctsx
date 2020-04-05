@@ -7,7 +7,7 @@
 # All rights reserved.  See copyright.h for copyright notice and limitation 
 # of liability and disclaimer of warranty provisions.
 
-DEFINES = -DTHREADS -DLAB1 -DLAB2 -DLAB3
+DEFINES = -DTHREADS -DLAB1 -DLAB2 -DLAB3 -DLAB4
 INCPATH = -I../threads -I../machine
 HFILES = $(THREAD_H)
 CFILES = $(THREAD_C)
@@ -283,7 +283,7 @@ threadtest.o: ../threads/threadtest.cc \
  /usr/x86_64-linux-gnu/include/strings.h ../threads/thread.h \
  ../threads/scheduler.h ../threads/list.h ../machine/interrupt.h \
  ../threads/list.h ../machine/stats.h ../machine/timer.h \
- ../threads/utility.h ../machine/elevatortest.h
+ ../threads/utility.h ../machine/elevatortest.h ../threads/synch.h
 interrupt.o: ../machine/interrupt.cc \
  /usr/x86_64-linux-gnu/include/stdc-predef.h ../threads/copyright.h \
  ../machine/interrupt.h ../threads/list.h ../threads/copyright.h \

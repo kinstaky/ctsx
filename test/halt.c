@@ -12,6 +12,8 @@
 
 #include "syscall.h"
 
+int data = 1;
+
 int
 main()
 {

@@ -86,6 +86,9 @@ Initialize(int argc, char **argv)
 
 #ifdef USER_PROGRAM
     bool debugUserProg = FALSE;	// single step user program
+#ifdef LAB4
+    bool reversePageTable = false;
+#endif
 #endif
 #ifdef FILESYS_NEEDED
     bool format = FALSE;	// format disk
@@ -114,6 +117,9 @@ Initialize(int argc, char **argv)
 #ifdef USER_PROGRAM
 	if (!strcmp(*argv, "-s"))
 	    debugUserProg = TRUE;
+#ifdef LAB4
+    if (!strcmp(*argv, "-rv")) reversePageTable = true;
+#endif
 #endif
 #ifdef FILESYS_NEEDED
 	if (!strcmp(*argv, "-f"))
@@ -165,6 +171,9 @@ Initialize(int argc, char **argv)
 
 #ifdef USER_PROGRAM
     machine = new Machine(debugUserProg);	// this must come first
+#ifdef LAB4
+    if (reversePageTable) machine->UseReversePageTable();
+#endif
 #endif
 
 #ifdef FILESYS

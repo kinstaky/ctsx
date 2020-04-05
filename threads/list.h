@@ -56,7 +56,10 @@ class List {
     unsigned int NumInList() { return numInList;};
 
     bool IsEmpty();		// is the list empty? 
-    
+
+#ifdef LAB4
+    bool IsInList(void *item);
+#endif
 
     // Routines to put/get items on/off list in order (sorted by key)
     void SortedInsert(void *item, int sortKey);	// Put item into list

@@ -40,6 +40,10 @@ class TranslationEntry {
 			// page is referenced or modified.
     bool dirty;         // This bit is set by the hardware every time the
 			// page is modified.
+#ifdef LAB4
+    bool clockDirty;        // for Clock scheduler
+    bool clockUse;          // for Clock scheduler
+#endif
 };
 
 #endif

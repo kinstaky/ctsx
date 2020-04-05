@@ -5,7 +5,7 @@
  */
 
 #define MAIN
-#include "copyright.h"
+//#include "copyright.h"
 #undef MAIN
 
 /*
