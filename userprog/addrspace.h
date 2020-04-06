@@ -47,7 +47,10 @@ public:
 
     void SaveState();			// Save/restore address space-specific
     void RestoreState();		// info on a context switch 
-
+#ifdef LAB4
+    int DiskRead(char *memory, int virtualAddr, int size);
+	int DiskWrite(char *memory, int virtualAddr, int size);
+#endif
 
 private:
     TranslationEntry *pageTable;	// Assume linear page table translation

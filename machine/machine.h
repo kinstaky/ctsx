@@ -181,7 +181,7 @@ private:
 
 class Machine {
   public:
-    Machine(bool debug);	// Initialize the simulation of the hardware
+    Machine(bool debug, bool reversePageTable = false);	// Initialize the simulation of the hardware
 				// for running user programs
     ~Machine();			// De-allocate the data structures
 
@@ -224,11 +224,9 @@ class Machine {
 #ifdef LAB4
     void TlbReplace();
     void PageTableReplace(int vpn, int *ppn);
-    void UseReversePageTable();
-    void ClearVirtualPages();
+    void ClearVirtualPages(bool all = true);
 
-    VirtualDisk *disk;
-    BitMap *memoryMap;
+    bool ReversePageTable;
 #endif
 
 // Data structures -- all of these are accessible to Nachos kernel code.
@@ -276,7 +274,7 @@ class Machine {
 
     TranslationEntryScheduler *tlbScheduler;
     TranslationEntryScheduler *pageTableScheduler;
-    bool reversePageTable;
+    BitMap *memoryMap;
 #endif
 };
 

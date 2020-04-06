@@ -52,7 +52,7 @@ void CheckEndian()
 //		is executed.
 //----------------------------------------------------------------------
 
-Machine::Machine(bool debug)
+Machine::Machine(bool debug, bool reverse = false)
 {
     int i;
 
@@ -65,21 +65,33 @@ Machine::Machine(bool debug)
     tlb = new TranslationEntry[TLBSize];
     for (i = 0; i < TLBSize; i++)
 	tlb[i].valid = FALSE;
-#ifndef LAB4
     pageTable = NULL;
-#endif
 #else	// use linear page table
     tlb = NULL;
     pageTable = NULL;
 #endif
 #ifdef LAB4
+    ReversePageTable = reverse;
+    if (ReversePageTable) {
+        pageTable = new TranslationEntry[NumPhysPages];
+        for (int i = 0; i != NumPhysPages; ++i) {
+            pageTable[i].valid = false;
+            pageTable[i].dirty = false;
+            pageTable[i].use = false;
+            pageTable[i].readOnly = false;
+            pageTable[i].virtualPage = -1;
+            pageTable[i].physicalPage = i;
+            pageTable[i].thread = NULL;
+        }
+        pageTableSize = NumPhysPages;
+    }
+
     // tlbSchduler = new EntryFifo("TLB scheduler");
     // tlbScheduler = new EntryLru("TLB scheduler");
     tlbScheduler = new EntryClock("TLB scheduler");
     tlbScheduler->SetStart(tlb);
     pageTableScheduler = new EntryClock("PageTable scheduler");
     memoryMap = new BitMap(NumPhysPages);
-    disk = NULL;
 #endif
 
     singleStep = debug;
@@ -237,40 +249,36 @@ int Machine::getNewFrame() {
 
 
 //----------------------------------------------------------------------
-// Machine::UseReversePageTable
-// use reverse page table
-//----------------------------------------------------------------------
-
-void Machine::UseReversePageTable() {
-    reversePageTable = true;
-    return;
-}
-
-
-//----------------------------------------------------------------------
 // Machine::ClearVirtualPages
 // Clear the TLB and page table, then write back the dirty page to
 // the disk (or virtual disk)
 //----------------------------------------------------------------------
 
-void Machine::ClearVirtualPages() {
+void Machine::ClearVirtualPages(bool all = true) {
     // Clear TLB and save them
     for (int i = 0; i != TLBSize; ++i) {
         if (tlb[i].valid) {
             // assure all the dirty page write back to the disk
-            if (tlb[i].dirty) pageTable[tlb[i].virtualPage].dirty = true;
+            if (tlb[i].dirty && !ReversePageTable) {
+                pageTable[tlb[i].virtualPage].dirty = true;
+            }
             tlbScheduler->Remove(&tlb[i]);
         }
     }
-
-    TranslationEntry *entry = pageTableScheduler->Remove();
-    while (entry) {
-        ASSERT(entry->valid);
-        entry->valid = false;
-        if (entry->dirty) {
-            disk->Write(mainMemory+entry->physicalPage*PageSize, entry->virtualPage*PageSize, PageSize);
+    for (int i = 0; i != TLBSize; ++i) {
+        ASSERT(tlb[i].valid == false);
+    }
+    if (all) {
+        TranslationEntry *entry = pageTableScheduler->Remove();
+        while (entry) {
+            ASSERT(entry->valid);
+            entry->valid = false;
+            if (entry->dirty) {
+                currentThread->space->DiskWrite(mainMemory+entry->physicalPage*PageSize, entry->virtualPage*PageSize, PageSize);
+            }
+            memoryMap->Clear(entry->physicalPage);
+            entry = pageTableScheduler->Remove();
         }
-        entry = pageTableScheduler->Remove();
     }
 }
 

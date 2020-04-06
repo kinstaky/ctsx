@@ -152,8 +152,10 @@ Initialize(int argc, char **argv)
 #ifdef LAB1
     LivingThreadPool = new List;        // initialize the living thread pool
 #endif
+
     if (randomYield)				// start the timer (if needed)
 	timer = new Timer(TimerInterruptHandler, 0, randomYield);
+
 
     threadToBeDestroyed = NULL;
 
@@ -170,9 +172,10 @@ Initialize(int argc, char **argv)
     CallOnUserAbort(Cleanup);			// if user hits ctl-C
 
 #ifdef USER_PROGRAM
-    machine = new Machine(debugUserProg);	// this must come first
 #ifdef LAB4
-    if (reversePageTable) machine->UseReversePageTable();
+    machine = new Machine(debugUserProg, reversePageTable);
+#else
+    machine = new Machine(debugUserProg);	// this must come first
 #endif
 #endif
 

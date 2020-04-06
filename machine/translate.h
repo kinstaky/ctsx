@@ -41,6 +41,7 @@ class TranslationEntry {
     bool dirty;         // This bit is set by the hardware every time the
 			// page is modified.
 #ifdef LAB4
+    void* thread;
     bool clockDirty;        // for Clock scheduler
     bool clockUse;          // for Clock scheduler
 #endif

@@ -114,6 +114,9 @@ int VirtualDisk::Write(char *memory, int virtualAddr, int size) {
 // "size": the size(byte) to read
 //----------------------------------------------------------------------
 int VirtualDisk::Read(char *memory, int virtualAddr, int size) {
+    if (virtualAddr >= diskSize) {
+        printf("virtualAddr = 0x%x, diskSize = %x\n", virtualAddr, diskSize);
+    }
     ASSERT(virtualAddr < diskSize);
     ASSERT(virtualAddr >= 0);
 
@@ -180,29 +183,35 @@ AddrSpace::AddrSpace(OpenFile *executable)
 						// to run anything too big --
 						// at least until we have
 						// virtual memory
-#endif
 
-    DEBUG('a', "Initializing address space, num pages %d, size %d\n", 
-					numPages, size);
-// first, set up the translation 
-    pageTable = new TranslationEntry[numPages];
-    for (i = 0; i < numPages; i++) {
-#ifdef LAB4
-        pageTable[i].virtualPage = i;
-        pageTable[i].physicalPage = -1;
-        pageTable[i].valid = false;      // lazy loading, all not available
 #else
-    	pageTable[i].virtualPage = i;	// for now, virtual page # = phys page #
-    	pageTable[i].physicalPage = i;
-        pageTable[i].valid = TRUE;
+    if (!machine->ReversePageTable) {
+        DEBUG('a', "Initializing address space, num pages %d, size %d\n", 
+                    numPages, size);
+        // first, set up the translation 
 #endif
-    	pageTable[i].use = FALSE;
-    	pageTable[i].dirty = FALSE;
-    	pageTable[i].readOnly = FALSE;  // if the code segment was entirely on 
-    					// a separate page, we could set its 
-    					// pages to be read-only
-    }
+        pageTable = new TranslationEntry[numPages];
 
+        for (i = 0; i < numPages; i++) {
+#ifdef LAB4
+            pageTable[i].virtualPage = i;
+            pageTable[i].physicalPage = -1;
+            pageTable[i].thread = NULL;
+            pageTable[i].valid = false;      // lazy loading, all not available
+#else
+        	pageTable[i].virtualPage = i;	// for now, virtual page # = phys page #
+        	pageTable[i].physicalPage = i;
+            pageTable[i].valid = TRUE;
+#endif
+        	pageTable[i].use = FALSE;
+        	pageTable[i].dirty = FALSE;
+        	pageTable[i].readOnly = FALSE;  // if the code segment was entirely on 
+        					// a separate page, we could set its 
+        					// pages to be read-only
+        }
+#ifdef LAB4
+    }
+#endif
 #ifndef LAB4
 // zero out the entire address space, to zero the unitialized data segment 
 // and the stack segment
@@ -250,7 +259,7 @@ AddrSpace::AddrSpace(OpenFile *executable)
 
 AddrSpace::~AddrSpace()
 {
-   delete pageTable;
+    delete pageTable;
 }
 
 //----------------------------------------------------------------------
@@ -281,6 +290,7 @@ AddrSpace::InitRegisters()
    // Set the stack register to the end of the address space, where we
    // allocated the stack; but subtract off a bit, to make sure we don't
    // accidentally reference off the end!
+
     machine->WriteRegister(StackReg, numPages * PageSize - 16);
     DEBUG('a', "Initializing stack register to %d\n", numPages * PageSize - 16);
 }
@@ -295,7 +305,12 @@ AddrSpace::InitRegisters()
 
 void AddrSpace::SaveState() {
 #ifdef LAB4
-    machine->ClearVirtualPages();
+    if (machine->ReversePageTable) {
+        machine->ClearVirtualPages(false);
+    }
+    else {
+        machine->ClearVirtualPages(true);
+    }
 #endif
 }
 
@@ -309,9 +324,36 @@ void AddrSpace::SaveState() {
 
 void AddrSpace::RestoreState() 
 {
-    machine->pageTable = pageTable;
-    machine->pageTableSize = numPages;
 #ifdef LAB4
-    machine->disk = disk;
+    if (!machine->ReversePageTable) {
+        machine->pageTable = pageTable;
+        machine->pageTableSize = numPages;
+    }
+    else {
+        pageTable = machine->pageTable;
+    }
 #endif
 }
+
+
+#ifdef LAB4
+//----------------------------------------------------------------------
+// AddrSpace::DiskRead
+// the public method of disk->Read
+//----------------------------------------------------------------------
+
+int AddrSpace::DiskRead(char *memory, int virtualAddr, int size) {
+    return disk->Read(memory, virtualAddr, size);
+}
+
+
+//----------------------------------------------------------------------
+// AddrSpace::DiskWrite
+// the public method of disk->Write
+//----------------------------------------------------------------------
+
+int AddrSpace::DiskWrite(char *memory, int virtualAddr, int size) {
+    return disk->Write(memory, virtualAddr, size);
+}
+
+#endif
