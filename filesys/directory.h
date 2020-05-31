@@ -22,6 +22,32 @@
 #define FileNameMaxLen 		9	// for simplicity, we assume 
 					// file names are <= 9 characters long
 
+#ifdef LAB5
+#include "system.h"
+
+#define FileDirNameMaxLen      18   // max length of direct name
+                            // 18 to make the sizeof(DirectoryEntry) == 32
+                            // so, store 4 entries in one directory file
+#define Success       0
+#define FileNotFound  1
+#define FileExist     2
+#define FileTooLarge  3
+#define DirNotEmpty   4
+#define NameTooLong   5
+#define NotDirectory  6
+
+
+#endif
+
+// The following class defines a "file name chain", restore the file name
+// in the disk with a chain
+
+class FileNameChain {
+public:
+    int nextSector;         // -1: without next, >=0: next sector to store the name
+    char name;
+};
+
 // The following class defines a "directory entry", representing a file
 // in the directory.  Each entry gives the name of the file, and where
 // the file's header is to be found on disk.
@@ -30,12 +56,21 @@
 // access them directly.
 
 class DirectoryEntry {
-  public:
-    bool inUse;				// Is this directory entry in use?
+public:
     int sector;				// Location on disk to find the 
 					//   FileHeader for this file 
+#ifdef LAB5
+    int nameSector;         // sector for saving the indirect name
+    int nameLength;         // length of name
+
+    bool inUse;             // Is this directory entry in use?
+    char dirName[FileDirNameMaxLen + 1];   // direct name, +1 for '\0'
+
+#else
+    bool inUse;             // Is this directory entry in use?
     char name[FileNameMaxLen + 1];	// Text name for file, with +1 for 
 					// the trailing '\0'
+#endif
 };
 
 // The following class defines a UNIX-like "directory".  Each entry in
@@ -50,31 +85,39 @@ class DirectoryEntry {
 
 class Directory {
   public:
+
     Directory(int size); 		// Initialize an empty directory
 					// with space for "size" files
     ~Directory();			// De-allocate the directory
 
     void FetchFrom(OpenFile *file);  	// Init directory contents from disk
-    void WriteBack(OpenFile *file);	// Write modifications to 
+    void WriteBack(OpenFile *file, BitMap *freeMap);	// Write modifications to 
 					// directory contents back to disk
 
     int Find(char *name);		// Find the sector number of the 
 					// FileHeader for file: "name"
 
-    bool Add(char *name, int newSector);  // Add a file name into the directory
+    int Add(char *name, int newSector, BitMap *freeMap);  // Add a file name into the directory
 
-    bool Remove(char *name);		// Remove a file from the directory
+    int Remove(char *name);		// Remove a file from the directory
 
-    void List();			// Print the names of all the files
+    void List(bool Recursive = true);			// Print the names of all the files
 					//  in the directory
-    void Print();			// Verbose print of the contents
+    void Print(bool Recursive = true);			// Verbose print of the contents
 					//  of the directory -- all the file
 					//  names and their contents.
+#ifdef LAB5
+    bool IsEmpty();
+    void SetParent(int parent);
+#endif
 
   private:
     int tableSize;			// Number of directory entries
     DirectoryEntry *table;		// Table of pairs: 
 					// <file name, file header location> 
+    void getFileName(DirectoryEntry *entry, char *name);
+    int setFileName(DirectoryEntry *entry, char *name, BitMap *freeMap);
+
 
     int FindIndex(char *name);		// Find the index into the directory 
 					//  table corresponding to "name"

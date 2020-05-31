@@ -48,26 +48,102 @@ Copy(char *from, char *to)
     fseek(fp, 0, 0);
 
 // Create a Nachos file of the same length
+printf("Copying file %s, size %d, to file %s\n", from, fileLength, to);
     DEBUG('f', "Copying file %s, size %d, to file %s\n", from, fileLength, to);
-    if (!fileSystem->Create(to, fileLength)) {	 // Create Nachos file
-	printf("Copy: couldn't create output file %s\n", to);
-	fclose(fp);
-	return;
+#ifdef LAB5
+    int success;
+    if ((success = fileSystem->Create(to, fileLength)) != Success) {
+        switch (success) {
+            case FileNotFound:
+                printf("Copy: Path error\n");
+                break;
+            case FileExist:
+                printf("Copy: File Exist\n");
+                break;
+            case FileTooLarge:
+                printf("Copy: File too large\n");
+                break;
+            case NameTooLong:
+                printf("Copy: File name too long, without enough space\n");
+                break;
+            default:
+                printf("Copy: Undefined error %d\n", success);
+        }
+        fclose(fp);
+        return;
     }
-    
+#else
+    if (!fileSystem->Create(to, fileLength)) {	 // Create Nachos file
+	   printf("Copy: couldn't create output file %s\n", to);
+	   fclose(fp);
+	   return;
+    }
+#endif
     openFile = fileSystem->Open(to);
     ASSERT(openFile != NULL);
-    
 // Copy the data in TransferSize chunks
     buffer = new char[TransferSize];
-    while ((amountRead = fread(buffer, sizeof(char), TransferSize, fp)) > 0)
-	openFile->Write(buffer, amountRead);	
+    while ((amountRead = fread(buffer, sizeof(char), TransferSize, fp)) > 0) {
+	   openFile->Write(buffer, amountRead, 0);
+    }
     delete [] buffer;
 
 // Close the UNIX and the Nachos files
     delete openFile;
     fclose(fp);
 }
+
+#ifdef LAB5
+//----------------------------------------------------------------------
+// MakeDir
+//  Create directory through absolute path
+//----------------------------------------------------------------------
+
+void MakeDir(char *name) {
+    int success = fileSystem->CreateDir(name);
+    if (success == Success) return;
+    switch (success) {
+        case FileNotFound:
+            printf("MakeDir: Path error\n");
+            break;
+        case FileExist:
+            printf("MakeDir: File exist\n");
+            break;
+        case FileTooLarge:
+            printf("MakeDir: File too large, without enough space\n");
+            break;
+        case NameTooLong:
+            printf("MakeDir: File name too long, without enough space\n");
+            break;
+        default:
+            printf("MakeDir: Undefined error %d\n", success);
+    }
+    return;
+}
+
+
+
+//----------------------------------------------------------------------
+// Remove
+//  Remove a file or directory.
+//----------------------------------------------------------------------
+void Remove(char *name) {
+    int success = fileSystem->Remove(name);
+    if (success == Success) return;
+    switch (success) {
+        case FileNotFound:
+            printf("Remove: File not found or path error\n");
+            break;
+        case DirNotEmpty:
+            printf("Remove: Directory not empty\n");
+            break;
+        default:
+            printf("Remove: Undefined error %d\n", success);
+    }
+    return;
+}
+
+#endif
 
 //----------------------------------------------------------------------
 // Print
@@ -95,6 +171,7 @@ Print(char *name)
     delete openFile;		// close the Nachos file
     return;
 }
+
 
 //----------------------------------------------------------------------
 // PerformanceTest
@@ -131,7 +208,7 @@ FileWrite()
 	return;
     }
     for (i = 0; i < FileSize; i += ContentSize) {
-        numBytes = openFile->Write(Contents, ContentSize);
+        numBytes = openFile->Write(Contents, ContentSize, 0);
 	if (numBytes < 10) {
 	    printf("Perf test: unable to write %s\n", FileName);
 	    delete openFile;

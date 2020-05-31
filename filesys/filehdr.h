@@ -17,8 +17,27 @@
 #include "disk.h"
 #include "bitmap.h"
 
+#ifdef LAB5
+
+#include "time.h"
+
+#define NumDirect   ((SectorSize - 8 * sizeof(int)) / sizeof(int))
+#define DirectSize  (NumDirect * SectorSize)
+
+// file type
+#define TypeNor     0       // noraml file
+#define TypeDir     1       // directory
+
+// for indirect block
+#define NumMixDirect    16
+#define NumMixInDirect  16
+
+#else
+
 #define NumDirect 	((SectorSize - 2 * sizeof(int)) / sizeof(int))
 #define MaxFileSize 	(NumDirect * SectorSize)
+
+#endif
 
 // The following class defines the Nachos "file header" (in UNIX terms,  
 // the "i-node"), describing where on disk to find all of the data in the file.
@@ -37,6 +56,19 @@
 
 class FileHeader {
   public:
+#ifdef LAB5
+    FileHeader();                       // set the type and parent
+
+    void SetToDir();
+    bool IsDir();
+    void SetParent(int psector);
+    void ChangeReadTime();              // change readTime to now
+    void ChangeWriteTime();             // change writeTime to now
+
+    int SectorToMixD(int sector, int &index);                // find the slot with the byte offset
+    int SectorToMixI(int num, int &index);
+
+#endif
     bool Allocate(BitMap *bitMap, int fileSize);// Initialize a file header, 
 						//  including allocating space 
 						//  on disk for the file data
@@ -59,8 +91,39 @@ class FileHeader {
   private:
     int numBytes;			// Number of bytes in the file
     int numSectors;			// Number of data sectors in the file
-    int dataSectors[NumDirect];		// Disk sector numbers for each data 
+
+#ifdef LAB5
+    int type;                   // normal, directory or executable
+    time_t createTime;          // create time
+    time_t readTime;            // recently visit time
+    time_t writeTime;           // recently write time
+    int parentSector;           // sector of parent directory
+    int indirect;               // secotr of indirect data block
+    int directSector[NumDirect];    // direct sectors
+
+    int mixSectorsNeed(int sector);      // number of mixDirSectors needed by secotrs
+    int mixSearch(int num);
+
+#else
+   int dataSectors[NumDirect];		// Disk sector numbers for each data 
 					// block in the file
+#endif
 };
+
+#ifdef LAB5
+// The following class is the mixture sector of direct index
+// and indirect index sector
+
+class MixDirSector {
+public:
+    int Direct[NumMixDirect];
+    int InDirect[NumMixInDirect];
+
+    void FetchFrom(int sectorNumber);
+    void WriteBack(int sectorNumber);
+    void Print();
+};
+
+#endif
 
 #endif // FILEHDR_H

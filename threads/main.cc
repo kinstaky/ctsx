@@ -68,6 +68,10 @@ extern void MailTest(int networkID);
 extern void StartNProcess(char *file, int count);
 #endif
 
+#ifdef LAB5
+extern void Remove(char *name), MakeDir(char *file);
+#endif
+
 //----------------------------------------------------------------------
 // main
 // 	Bootstrap the operating system kernel.  
@@ -91,8 +95,8 @@ main(int argc, char **argv)
     DEBUG('t', "Entering main");
     (void) Initialize(argc, argv);
 
-
 #ifdef THREADS
+#ifndef LAB5
     for (argc--, argv++; argc > 0; argc -= argCount, argv += argCount) {
       argCount = 1;
       switch (argv[0][1]) {
@@ -105,8 +109,8 @@ main(int argc, char **argv)
         break;
       }
     }
-
     ThreadTest();
+#endif
 #endif
 
     for (argc--, argv++; argc > 0; argc -= argCount, argv += argCount) {
@@ -146,8 +150,17 @@ main(int argc, char **argv)
 	    argCount = 2;
 	} else if (!strcmp(*argv, "-r")) {	// remove Nachos file
 	    ASSERT(argc > 1);
+#ifdef LAB5
+	    Remove(*(argv +1));
+#else
 	    fileSystem->Remove(*(argv + 1));
+#endif
 	    argCount = 2;
+#ifdef LAB5
+	} else if (!strcmp(*argv, "-md")) {		// create a directory
+		MakeDir(*(argv + 1));
+		argCount = 2;
+#endif
 	} else if (!strcmp(*argv, "-l")) {	// list Nachos directory
             fileSystem->List();
 	} else if (!strcmp(*argv, "-D")) {	// print entire filesystem
@@ -167,7 +180,6 @@ main(int argc, char **argv)
         }
 #endif // NETWORK
     }
-
     currentThread->Finish();	// NOTE: if the procedure "main" 
 				// returns, then the program "nachos"
 				// will exit (as any other normal program

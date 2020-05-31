@@ -25,6 +25,7 @@
 
 #include "copyright.h"
 #include "utility.h"
+#include "synch.h"
 
 // The following class defines a hardware console device.
 // Input and output to the device is simulated by reading 
@@ -71,5 +72,30 @@ class Console {
 					// if there is one available. 
 					// Otherwise contains EOF.
 };
+
+
+#ifdef LAB5
+
+class Lock;
+class Semaphore;
+
+class SynchConsole {
+public:
+    SynchConsole(char *readFile, char *writeFile);
+    ~SynchConsole();
+
+    char GetChar();
+    void PutChar(char ch);
+    void ReadDone();
+    void WriteDone();
+private:
+    Console *console;
+    Lock *lock;
+    Semaphore *readSemaphore;
+    Semaphore *writeSemaphore;
+};
+
+
+#endif
 
 #endif // CONSOLE_H

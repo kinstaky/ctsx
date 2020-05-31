@@ -47,6 +47,11 @@ Thread::Thread(char* threadName)
 #ifdef USER_PROGRAM
     space = NULL;
 #endif
+#ifdef LAB5
+    for (int i = 0; i != MAXOPEN; ++i) {
+        OpenTable[i].inUse = 0;
+    }
+#endif
 }
 #else   // LAB1
 
@@ -59,6 +64,11 @@ Thread::Thread(char *threadName, uint threadUid = 0) {
     status = JUST_CREATED;
 #ifdef USER_PROGRAM
     space = NULL;
+#endif
+#ifdef LAB5
+    for (int i = 0; i != MAXOPEN; ++i) {
+        OpenTable[i].inUse = 0;
+    }
 #endif
 }
 #endif  // LAB1
@@ -75,6 +85,11 @@ Thread::Thread(char *threadName, uint threadUid = 0, int threadNice = 0) {
     status = JUST_CREATED;
 #ifdef USER_PROGRAM
     space = NULL;
+#endif
+#ifdef LAB5
+    for (int i = 0; i != MAXOPEN; ++i) {
+        OpenTable[i].inUse = 0;
+    }
 #endif
 }
 

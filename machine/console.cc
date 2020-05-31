@@ -148,3 +148,58 @@ Console::PutChar(char ch)
     interrupt->Schedule(ConsoleWriteDone, (int)this, ConsoleTime,
 					ConsoleWriteInt);
 }
+
+
+
+#ifdef LAB5
+static void SynchConsoleWriteDone (int arg) {
+    SynchConsole *console = (SynchConsole *)arg;
+    console->WriteDone();
+}
+
+static void ConsoleReadAvail(int arg) {
+    SynchConsole *console = (SynchConsole *)arg;
+    console->ReadDone();
+}
+
+
+SynchConsole::SynchConsole(char *readFile, char *writeFile) {
+    readSemaphore = new Semaphore("synch console read", 0);
+    writeSemaphore = new Semaphore("synch console write", 0);
+    lock = new Lock("synch console lock");
+    console = new Console(readFile, writeFile, ConsoleReadAvail, SynchConsoleWriteDone, 0);
+}
+
+
+SynchConsole::~SynchConsole() {
+    delete console;
+    delete writeSemaphore;
+    delete readSemaphore;
+    delete lock;
+}
+
+void SynchConsole::PutChar(char ch) {
+    lock->Acquire();
+    console->PutChar(ch);
+    writeSemaphore->P();
+    lock->Release();
+}
+
+char SynchConsole::GetChar() {
+    lock->Acquire();
+    readSemaphore->P();
+    char ch = console->GetChar();
+    lock->Release();
+    return ch;
+}
+
+void SynchConsole::ReadDone() {
+    readSemaphore->V();
+}
+
+void SynchConsole::WriteDone() {
+    writeSemaphore->V();
+}
+
+
+#endif

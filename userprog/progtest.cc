@@ -87,7 +87,15 @@ void
 ConsoleTest (char *in, char *out)
 {
     char ch;
+# ifdef LAB5
+    SynchConsole *synConsole = new SynchConsole(in, out);
+    for (;;) {
+        ch = synConsole->GetChar();
+        synConsole->PutChar(ch);
+        if (ch == 'q') return;
+    }
 
+#else
     console = new Console(in, out, ReadAvail, WriteDone, 0);
     readAvail = new Semaphore("read avail", 0);
     writeDone = new Semaphore("write done", 0);
@@ -99,4 +107,5 @@ ConsoleTest (char *in, char *out)
 	writeDone->P() ;        // wait for write to finish
 	if (ch == 'q') return;  // if q, quit
     }
+#endif
 }

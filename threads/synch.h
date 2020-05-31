@@ -176,4 +176,26 @@ private:
     int readerNum;
 };
 
+
+#ifdef LAB5
+
+// no time to write comment
+
+class Pipe {
+public:
+    Pipe();
+    ~Pipe();
+
+    void PutChar(char ch);
+    char GetChar();
+
+private:
+    char incoming;
+    Lock *lock;
+    Semaphore *empty;
+    Semaphore *full;
+};
+
+#endif
+
 #endif // SYNCH_H

@@ -348,3 +348,40 @@ void Condition::Wait(Lock* conditionLock) { ASSERT(FALSE); }
 void Condition::Signal(Lock* conditionLock) { }
 void Condition::Broadcast(Lock* conditionLock) { }
 #endif
+
+
+#ifdef LAB5
+
+Pipe::Pipe() {
+    lock = new Lock("pipe lock");
+    full = new Semaphore("pipe full", 0);
+    empty = new Semaphore("pipe empty", 1);
+}
+
+Pipe::~Pipe() {
+    delete lock;
+    delete full;
+    delete empty;
+}
+
+char Pipe::GetChar() {
+    full->P();
+
+    lock->Acquire();
+    char ch = incoming;
+    lock->Release();
+
+    empty->V();
+    return ch;
+}
+
+void Pipe::PutChar(char ch) {
+    empty->P();
+    lock->Acquire();
+    incoming = ch;
+    lock->Release();
+    full->V();
+    return;
+}
+
+#endif

@@ -41,23 +41,24 @@
 #ifdef FILESYS_STUB 		// Temporarily implement file system calls as 
 				// calls to UNIX, until the real file system
 				// implementation is available
+
 class FileSystem {
   public:
     FileSystem(bool format) {}
 
     bool Create(char *name, int initialSize) { 
-	int fileDescriptor = OpenForWrite(name);
+  int fileDescriptor = OpenForWrite(name);
 
-	if (fileDescriptor == -1) return FALSE;
-	Close(fileDescriptor); 
-	return TRUE; 
-	}
+  if (fileDescriptor == -1) return FALSE;
+  Close(fileDescriptor); 
+  return TRUE; 
+  }
 
     OpenFile* Open(char *name) {
-	  int fileDescriptor = OpenForReadWrite(name, FALSE);
+    int fileDescriptor = OpenForReadWrite(name, FALSE);
 
-	  if (fileDescriptor == -1) return NULL;
-	  return new OpenFile(fileDescriptor);
+    if (fileDescriptor == -1) return NULL;
+    return new OpenFile(fileDescriptor);
       }
 
     bool Remove(char *name) { return Unlink(name) == 0; }
@@ -65,8 +66,29 @@ class FileSystem {
 };
 
 #else // FILESYS
+
+
+struct FileTable {
+    int sector;
+    int inUse;
+    int num;
+    OpenFile *file;
+};
+
+#define MAXFILEOPEN   16
+
+#define Success       0
+#define FileNotFound  1
+#define FileExist     2
+#define FileTooLarge  3
+#define DirNotEmpty   4
+#define NameTooLong   5
+#define NotDirectory  6
+#define FileOpened    7
+
+
 class FileSystem {
-  public:
+public:
     FileSystem(bool format);		// Initialize the file system.
 					// Must be called *after* "synchDisk" 
 					// has been initialized.
@@ -74,22 +96,36 @@ class FileSystem {
 					// the disk, so initialize the directory
     					// and the bitmap of free blocks.
 
-    bool Create(char *name, int initialSize);  	
+    int Create(char *name, int initialSize);  	
 					// Create a file (UNIX creat)
 
     OpenFile* Open(char *name); 	// Open a file (UNIX open)
 
-    bool Remove(char *name);  		// Delete a file (UNIX unlink)
+    int Remove(char *name);  		// Delete a file (UNIX unlink)
 
     void List();			// List all the files in the file system
 
     void Print();			// List all the files and their contents
 
-  private:
+#ifdef LAB5
+    OpenFile *Open(char *name, int dirSector);
+    int Create(char *name, int initialSize, int dirSector);
+    int CreateDir(char *name);
+    int CreateDir(char *name, int dirSector);
+    int Remove(char *name, int dirSector);
+    int RemoveDir(char *name, int dirSector);
+    int RemoveDir(char *name);
+    int namex(char *name, char *&fileName);
+#endif
+
+private:
    OpenFile* freeMapFile;		// Bit map of free disk blocks,
 					// represented as a file
    OpenFile* directoryFile;		// "Root" directory -- list of 
 					// file names, represented as a file
+#ifdef LAB5
+   FileTable fileTable[MAXFILEOPEN];
+#endif
 };
 
 #endif // FILESYS

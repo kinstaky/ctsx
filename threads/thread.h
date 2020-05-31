@@ -80,6 +80,17 @@ const char ThreadStatusName[4][16] = {
 };
 #endif
 
+#ifdef LAB5
+struct OpenEntry {
+    int inUse;
+    OpenFile *file;
+    int position;
+};
+
+#define MAXOPEN     16
+#endif
+
+
 // external function, dummy routine whose sole job is to call Thread::Print
 extern void ThreadPrint(int arg);
 
@@ -149,6 +160,10 @@ class Thread {
 #endif
 #ifdef LAB2
     int GetNice() { return nice; }
+#endif
+
+#ifdef LAB5
+    OpenEntry OpenTable[MAXOPEN];
 #endif
 
   private:

@@ -19,6 +19,7 @@
 #include <strings.h>
 #endif
 
+
 //----------------------------------------------------------------------
 // OpenFile::OpenFile
 // 	Open a Nachos file for reading and writing.  Bring the file header
@@ -32,7 +33,22 @@ OpenFile::OpenFile(int sector)
     hdr = new FileHeader;
     hdr->FetchFrom(sector);
     seekPosition = 0;
+#ifdef LAB5
+    hdrSector = sector;
+    // lock = new ReadWriteLock("file read write lock");
+    type = TYPEFILE;
+    // pipe = NULL;
+    // console = NULL;
+#endif
 }
+
+
+#ifdef LAB5
+// OpenFile::OpenFile(Pipe *p) {
+
+// }
+
+#endif
 
 //----------------------------------------------------------------------
 // OpenFile::~OpenFile
@@ -80,9 +96,9 @@ OpenFile::Read(char *into, int numBytes)
 }
 
 int
-OpenFile::Write(char *into, int numBytes)
+OpenFile::Write(char *into, int numBytes, BitMap *freeMap)
 {
-   int result = WriteAt(into, numBytes, seekPosition);
+   int result = WriteAt(into, numBytes, seekPosition, freeMap);
    seekPosition += result;
    return result;
 }
@@ -116,6 +132,10 @@ OpenFile::Write(char *into, int numBytes)
 int
 OpenFile::ReadAt(char *into, int numBytes, int position)
 {
+#ifdef LAB5
+   hdr->ChangeReadTime();
+   lock->ReadAcquire();
+#endif
     int fileLength = hdr->FileLength();
     int i, firstSector, lastSector, numSectors;
     char *buf;
@@ -140,21 +160,36 @@ OpenFile::ReadAt(char *into, int numBytes, int position)
     // copy the part we want
     bcopy(&buf[position - (firstSector * SectorSize)], into, numBytes);
     delete [] buf;
+#ifdef LAB5
+    lock->ReadRelease();
+#endif
     return numBytes;
 }
 
 int
-OpenFile::WriteAt(char *from, int numBytes, int position)
+OpenFile::WriteAt(char *from, int numBytes, int position, BitMap *freeMap)
 {
+#ifdef LAB5
+   hdr->ChangeWriteTime();
+   lock->WriteAcquire();
+#endif
     int fileLength = hdr->FileLength();
     int i, firstSector, lastSector, numSectors;
     bool firstAligned, lastAligned;
     char *buf;
 
+#ifdef LAB5
+    if (numBytes <= 0) return 0;
+    if ((position + numBytes) > fileLength) {
+        hdr->Allocate(freeMap, position+numBytes-fileLength);
+    }
+#else
     if ((numBytes <= 0) || (position >= fileLength))
-	return 0;				// check request
+	   return 0;				// check request
     if ((position + numBytes) > fileLength)
-	numBytes = fileLength - position;
+        numBytes = fileLength - position;
+#endif
+    
     DEBUG('f', "Writing %d bytes at %d, from file of length %d.\n", 	
 			numBytes, position, fileLength);
 
@@ -178,10 +213,14 @@ OpenFile::WriteAt(char *from, int numBytes, int position)
     bcopy(from, &buf[position - (firstSector * SectorSize)], numBytes);
 
 // write modified sectors back
-    for (i = firstSector; i <= lastSector; i++)	
+    for (i = firstSector; i <= lastSector; i++) {
         synchDisk->WriteSector(hdr->ByteToSector(i * SectorSize), 
 					&buf[(i - firstSector) * SectorSize]);
+    }
     delete [] buf;
+#ifdef LAB5
+    lock->WriteRelease();
+#endif
     return numBytes;
 }
 
@@ -194,4 +233,16 @@ int
 OpenFile::Length() 
 { 
     return hdr->FileLength(); 
+}
+
+//----------------------------------------------------------------------
+// OpenFile::ChangeSize
+//  Change file size
+//----------------------------------------------------------------------
+
+void OpenFile::ChangeSize(int size, BitMap *freeMap) {
+    int oldSize = hdr->FileLength();
+    hdr->Allocate(freeMap, size-oldSize);
+    hdr->WriteBack(hdrSector);
+    return;
 }
