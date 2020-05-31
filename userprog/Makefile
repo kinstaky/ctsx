@@ -56,9 +56,8 @@ main.o: ../threads/main.cc /usr/x86_64-linux-gnu/include/stdc-predef.h \
  /usr/x86_64-linux-gnu/include/strings.h ../threads/system.h \
  ../threads/thread.h ../machine/machine.h ../threads/utility.h \
  ../machine/translate.h ../machine/disk.h ../threads/list.h \
- ../userprog/bitmap.h ../userprog/../filesys/openfile.h \
- ../threads/synch.h ../threads/list.h ../userprog/addrspace.h \
- ../filesys/filesys.h ../filesys/openfile.h ../threads/scheduler.h \
+ ../userprog/bitmap.h ../userprog/addrspace.h ../filesys/filesys.h \
+ ../filesys/openfile.h ../threads/scheduler.h ../threads/list.h \
  ../machine/interrupt.h ../machine/stats.h ../machine/timer.h
 list.o: ../threads/list.cc /usr/x86_64-linux-gnu/include/stdc-predef.h \
  ../threads/copyright.h ../threads/list.h ../threads/utility.h \
@@ -117,7 +116,6 @@ scheduler.o: ../threads/scheduler.cc \
  /usr/x86_64-linux-gnu/include/strings.h ../threads/thread.h \
  ../machine/machine.h ../threads/utility.h ../machine/translate.h \
  ../machine/disk.h ../threads/list.h ../userprog/bitmap.h \
- ../userprog/../filesys/openfile.h ../threads/synch.h \
  ../userprog/addrspace.h ../filesys/filesys.h ../filesys/openfile.h \
  ../threads/system.h ../machine/interrupt.h ../machine/stats.h \
  ../machine/timer.h
@@ -149,11 +147,10 @@ synch.o: ../threads/synch.cc /usr/x86_64-linux-gnu/include/stdc-predef.h \
  /usr/x86_64-linux-gnu/include/bits/types/__locale_t.h \
  /usr/x86_64-linux-gnu/include/strings.h ../machine/machine.h \
  ../threads/utility.h ../machine/translate.h ../machine/disk.h \
- ../threads/list.h ../userprog/bitmap.h ../userprog/../filesys/openfile.h \
- ../threads/synch.h ../userprog/addrspace.h ../filesys/filesys.h \
- ../filesys/openfile.h ../threads/list.h ../threads/system.h \
- ../threads/scheduler.h ../machine/interrupt.h ../machine/stats.h \
- ../machine/timer.h
+ ../threads/list.h ../userprog/bitmap.h ../userprog/addrspace.h \
+ ../filesys/filesys.h ../filesys/openfile.h ../threads/list.h \
+ ../threads/system.h ../threads/scheduler.h ../machine/interrupt.h \
+ ../machine/stats.h ../machine/timer.h
 synchlist.o: ../threads/synchlist.cc \
  /usr/x86_64-linux-gnu/include/stdc-predef.h ../threads/copyright.h \
  ../threads/synchlist.h ../threads/list.h ../threads/utility.h \
@@ -184,8 +181,7 @@ synchlist.o: ../threads/synchlist.cc \
  /usr/x86_64-linux-gnu/include/strings.h ../threads/synch.h \
  ../threads/thread.h ../machine/machine.h ../threads/utility.h \
  ../machine/translate.h ../machine/disk.h ../threads/list.h \
- ../userprog/bitmap.h ../userprog/../filesys/openfile.h \
- ../threads/synch.h ../userprog/addrspace.h ../filesys/filesys.h \
+ ../userprog/bitmap.h ../userprog/addrspace.h ../filesys/filesys.h \
  ../filesys/openfile.h
 system.o: ../threads/system.cc \
  /usr/x86_64-linux-gnu/include/stdc-predef.h ../threads/copyright.h \
@@ -217,10 +213,9 @@ system.o: ../threads/system.cc \
  /usr/x86_64-linux-gnu/include/strings.h ../threads/thread.h \
  ../machine/machine.h ../threads/utility.h ../machine/translate.h \
  ../machine/disk.h ../threads/list.h ../userprog/bitmap.h \
- ../userprog/../filesys/openfile.h ../threads/synch.h ../threads/list.h \
  ../userprog/addrspace.h ../filesys/filesys.h ../filesys/openfile.h \
- ../threads/scheduler.h ../machine/interrupt.h ../machine/stats.h \
- ../machine/timer.h
+ ../threads/scheduler.h ../threads/list.h ../machine/interrupt.h \
+ ../machine/stats.h ../machine/timer.h
 thread.o: ../threads/thread.cc \
  /usr/x86_64-linux-gnu/include/stdc-predef.h ../threads/copyright.h \
  ../threads/thread.h ../threads/utility.h ../threads/bool.h \
@@ -250,11 +245,11 @@ thread.o: ../threads/thread.cc \
  /usr/x86_64-linux-gnu/include/bits/types/__locale_t.h \
  /usr/x86_64-linux-gnu/include/strings.h ../machine/machine.h \
  ../threads/utility.h ../machine/translate.h ../machine/disk.h \
- ../threads/list.h ../userprog/bitmap.h ../userprog/../filesys/openfile.h \
- ../threads/synch.h ../threads/list.h ../userprog/addrspace.h \
+ ../threads/list.h ../userprog/bitmap.h ../userprog/addrspace.h \
  ../filesys/filesys.h ../filesys/openfile.h ../threads/switch.h \
- ../threads/synch.h ../threads/system.h ../threads/scheduler.h \
- ../machine/interrupt.h ../machine/stats.h ../machine/timer.h
+ ../threads/synch.h ../threads/list.h ../threads/system.h \
+ ../threads/scheduler.h ../machine/interrupt.h ../machine/stats.h \
+ ../machine/timer.h
 utility.o: ../threads/utility.cc \
  /usr/x86_64-linux-gnu/include/stdc-predef.h ../threads/copyright.h \
  ../threads/utility.h ../threads/bool.h ../machine/sysdep.h \
@@ -312,10 +307,9 @@ threadtest.o: ../threads/threadtest.cc \
  /usr/x86_64-linux-gnu/include/strings.h ../threads/thread.h \
  ../machine/machine.h ../threads/utility.h ../machine/translate.h \
  ../machine/disk.h ../threads/list.h ../userprog/bitmap.h \
- ../userprog/../filesys/openfile.h ../threads/synch.h ../threads/list.h \
  ../userprog/addrspace.h ../filesys/filesys.h ../filesys/openfile.h \
- ../threads/scheduler.h ../machine/interrupt.h ../machine/stats.h \
- ../machine/timer.h ../machine/elevatortest.h
+ ../threads/scheduler.h ../threads/list.h ../machine/interrupt.h \
+ ../machine/stats.h ../machine/timer.h ../machine/elevatortest.h
 interrupt.o: ../machine/interrupt.cc \
  /usr/x86_64-linux-gnu/include/stdc-predef.h ../threads/copyright.h \
  ../machine/interrupt.h ../threads/list.h ../threads/copyright.h \
@@ -346,10 +340,9 @@ interrupt.o: ../machine/interrupt.cc \
  /usr/x86_64-linux-gnu/include/strings.h ../threads/system.h \
  ../threads/thread.h ../machine/machine.h ../threads/utility.h \
  ../machine/translate.h ../machine/disk.h ../userprog/bitmap.h \
- ../userprog/../filesys/openfile.h ../threads/synch.h ../threads/list.h \
  ../userprog/addrspace.h ../filesys/filesys.h ../filesys/openfile.h \
- ../threads/scheduler.h ../machine/interrupt.h ../machine/stats.h \
- ../machine/timer.h
+ ../threads/scheduler.h ../threads/list.h ../machine/interrupt.h \
+ ../machine/stats.h ../machine/timer.h
 sysdep.o: ../machine/sysdep.cc \
  /usr/x86_64-linux-gnu/include/stdc-predef.h ../threads/copyright.h \
  /usr/x86_64-linux-gnu/include/stdio.h \
@@ -454,9 +447,8 @@ sysdep.o: ../machine/sysdep.cc \
  ../threads/utility.h ../threads/bool.h ../machine/sysdep.h \
  ../threads/system.h ../threads/thread.h ../machine/machine.h \
  ../threads/utility.h ../machine/translate.h ../machine/disk.h \
- ../userprog/bitmap.h ../userprog/../filesys/openfile.h \
- ../threads/synch.h ../threads/list.h ../userprog/addrspace.h \
- ../filesys/filesys.h ../filesys/openfile.h ../threads/scheduler.h \
+ ../userprog/bitmap.h ../userprog/addrspace.h ../filesys/filesys.h \
+ ../filesys/openfile.h ../threads/scheduler.h ../threads/list.h \
  ../machine/interrupt.h ../machine/stats.h ../machine/timer.h
 stats.o: ../machine/stats.cc /usr/x86_64-linux-gnu/include/stdc-predef.h \
  ../threads/copyright.h ../threads/utility.h ../threads/copyright.h \
@@ -514,9 +506,8 @@ timer.o: ../machine/timer.cc /usr/x86_64-linux-gnu/include/stdc-predef.h \
  /usr/x86_64-linux-gnu/include/strings.h ../threads/system.h \
  ../threads/utility.h ../threads/thread.h ../machine/machine.h \
  ../machine/translate.h ../machine/disk.h ../threads/list.h \
- ../userprog/bitmap.h ../userprog/../filesys/openfile.h \
- ../threads/synch.h ../threads/list.h ../userprog/addrspace.h \
- ../filesys/filesys.h ../filesys/openfile.h ../threads/scheduler.h \
+ ../userprog/bitmap.h ../userprog/addrspace.h ../filesys/filesys.h \
+ ../filesys/openfile.h ../threads/scheduler.h ../threads/list.h \
  ../machine/interrupt.h ../machine/stats.h ../machine/timer.h
 elevatortest.o: ../machine/elevatortest.cc \
  /usr/x86_64-linux-gnu/include/stdc-predef.h ../threads/copyright.h \
@@ -548,9 +539,8 @@ elevatortest.o: ../machine/elevatortest.cc \
  /usr/x86_64-linux-gnu/include/strings.h ../threads/list.h \
  ../threads/utility.h ../threads/synch.h ../threads/thread.h \
  ../machine/machine.h ../machine/translate.h ../machine/disk.h \
- ../userprog/bitmap.h ../userprog/../filesys/openfile.h \
- ../userprog/addrspace.h ../filesys/filesys.h ../filesys/openfile.h \
- ../threads/list.h ../threads/thread.h
+ ../userprog/bitmap.h ../userprog/addrspace.h ../filesys/filesys.h \
+ ../filesys/openfile.h ../threads/list.h ../threads/thread.h
 elevator.o: ../machine/elevator.cc \
  /usr/x86_64-linux-gnu/include/stdc-predef.h ../threads/copyright.h \
  ../machine/elevator.h ../threads/utility.h ../threads/copyright.h \
@@ -581,9 +571,8 @@ elevator.o: ../machine/elevator.cc \
  /usr/x86_64-linux-gnu/include/strings.h ../threads/list.h \
  ../threads/utility.h ../threads/system.h ../threads/thread.h \
  ../machine/machine.h ../machine/translate.h ../machine/disk.h \
- ../userprog/bitmap.h ../userprog/../filesys/openfile.h \
- ../threads/synch.h ../threads/list.h ../userprog/addrspace.h \
- ../filesys/filesys.h ../filesys/openfile.h ../threads/scheduler.h \
+ ../userprog/bitmap.h ../userprog/addrspace.h ../filesys/filesys.h \
+ ../filesys/openfile.h ../threads/scheduler.h ../threads/list.h \
  ../machine/interrupt.h ../machine/stats.h ../machine/timer.h
 prischeduler.o: ../threads/prischeduler.cc \
  /usr/x86_64-linux-gnu/include/stdc-predef.h ../threads/scheduler.h \
@@ -615,7 +604,6 @@ prischeduler.o: ../threads/prischeduler.cc \
  /usr/x86_64-linux-gnu/include/strings.h ../threads/thread.h \
  ../machine/machine.h ../threads/utility.h ../machine/translate.h \
  ../machine/disk.h ../threads/list.h ../userprog/bitmap.h \
- ../userprog/../filesys/openfile.h ../threads/synch.h \
  ../userprog/addrspace.h ../filesys/filesys.h ../filesys/openfile.h \
  ../threads/system.h ../machine/interrupt.h ../machine/stats.h \
  ../machine/timer.h
@@ -649,10 +637,10 @@ addrspace.o: ../userprog/addrspace.cc \
  /usr/x86_64-linux-gnu/include/strings.h ../threads/thread.h \
  ../machine/machine.h ../threads/utility.h ../machine/translate.h \
  ../machine/disk.h ../threads/list.h ../userprog/bitmap.h \
- ../userprog/../filesys/openfile.h ../threads/synch.h ../threads/list.h \
  ../userprog/addrspace.h ../filesys/filesys.h ../filesys/openfile.h \
- ../threads/scheduler.h ../machine/interrupt.h ../machine/stats.h \
- ../machine/timer.h ../userprog/addrspace.h ../bin/noff.h
+ ../threads/scheduler.h ../threads/list.h ../machine/interrupt.h \
+ ../machine/stats.h ../machine/timer.h ../userprog/addrspace.h \
+ ../bin/noff.h
 bitmap.o: ../userprog/bitmap.cc \
  /usr/x86_64-linux-gnu/include/stdc-predef.h ../threads/copyright.h \
  ../userprog/bitmap.h ../threads/utility.h ../threads/copyright.h \
@@ -680,12 +668,7 @@ bitmap.o: ../userprog/bitmap.cc \
  /usr/x86_64-linux-gnu/include/string.h \
  /usr/x86_64-linux-gnu/include/bits/types/locale_t.h \
  /usr/x86_64-linux-gnu/include/bits/types/__locale_t.h \
- /usr/x86_64-linux-gnu/include/strings.h \
- ../userprog/../filesys/openfile.h ../userprog/bitmap.h \
- ../threads/synch.h ../threads/thread.h ../threads/utility.h \
- ../machine/machine.h ../machine/translate.h ../machine/disk.h \
- ../threads/list.h ../userprog/addrspace.h ../filesys/filesys.h \
- ../filesys/openfile.h ../threads/list.h
+ /usr/x86_64-linux-gnu/include/strings.h ../filesys/openfile.h
 exception.o: ../userprog/exception.cc \
  /usr/x86_64-linux-gnu/include/stdc-predef.h ../threads/copyright.h \
  ../threads/system.h ../threads/copyright.h ../threads/utility.h \
@@ -716,10 +699,9 @@ exception.o: ../userprog/exception.cc \
  /usr/x86_64-linux-gnu/include/strings.h ../threads/thread.h \
  ../machine/machine.h ../threads/utility.h ../machine/translate.h \
  ../machine/disk.h ../threads/list.h ../userprog/bitmap.h \
- ../userprog/../filesys/openfile.h ../threads/synch.h ../threads/list.h \
  ../userprog/addrspace.h ../filesys/filesys.h ../filesys/openfile.h \
- ../threads/scheduler.h ../machine/interrupt.h ../machine/stats.h \
- ../machine/timer.h ../userprog/syscall.h
+ ../threads/scheduler.h ../threads/list.h ../machine/interrupt.h \
+ ../machine/stats.h ../machine/timer.h ../userprog/syscall.h
 progtest.o: ../userprog/progtest.cc \
  /usr/x86_64-linux-gnu/include/stdc-predef.h ../threads/copyright.h \
  ../threads/system.h ../threads/copyright.h ../threads/utility.h \
@@ -750,10 +732,10 @@ progtest.o: ../userprog/progtest.cc \
  /usr/x86_64-linux-gnu/include/strings.h ../threads/thread.h \
  ../machine/machine.h ../threads/utility.h ../machine/translate.h \
  ../machine/disk.h ../threads/list.h ../userprog/bitmap.h \
- ../userprog/../filesys/openfile.h ../threads/synch.h ../threads/list.h \
  ../userprog/addrspace.h ../filesys/filesys.h ../filesys/openfile.h \
- ../threads/scheduler.h ../machine/interrupt.h ../machine/stats.h \
- ../machine/timer.h ../machine/console.h ../userprog/addrspace.h
+ ../threads/scheduler.h ../threads/list.h ../machine/interrupt.h \
+ ../machine/stats.h ../machine/timer.h ../machine/console.h \
+ ../threads/synch.h ../userprog/addrspace.h
 console.o: ../machine/console.cc \
  /usr/x86_64-linux-gnu/include/stdc-predef.h ../threads/copyright.h \
  ../machine/console.h ../threads/utility.h ../threads/copyright.h \
@@ -784,10 +766,10 @@ console.o: ../machine/console.cc \
  /usr/x86_64-linux-gnu/include/strings.h ../threads/synch.h \
  ../threads/thread.h ../threads/utility.h ../machine/machine.h \
  ../machine/translate.h ../machine/disk.h ../threads/list.h \
- ../userprog/bitmap.h ../userprog/../filesys/openfile.h \
- ../userprog/addrspace.h ../filesys/filesys.h ../filesys/openfile.h \
- ../threads/list.h ../threads/system.h ../threads/scheduler.h \
- ../machine/interrupt.h ../machine/stats.h ../machine/timer.h
+ ../userprog/bitmap.h ../userprog/addrspace.h ../filesys/filesys.h \
+ ../filesys/openfile.h ../threads/list.h ../threads/system.h \
+ ../threads/scheduler.h ../machine/interrupt.h ../machine/stats.h \
+ ../machine/timer.h
 machine.o: ../machine/machine.cc \
  /usr/x86_64-linux-gnu/include/stdc-predef.h ../threads/copyright.h \
  ../machine/machine.h ../threads/utility.h ../threads/copyright.h \
@@ -817,10 +799,9 @@ machine.o: ../machine/machine.cc \
  /usr/x86_64-linux-gnu/include/bits/types/__locale_t.h \
  /usr/x86_64-linux-gnu/include/strings.h ../machine/translate.h \
  ../machine/disk.h ../threads/list.h ../threads/utility.h \
- ../userprog/bitmap.h ../userprog/../filesys/openfile.h \
- ../threads/synch.h ../threads/thread.h ../machine/machine.h \
- ../userprog/addrspace.h ../filesys/filesys.h ../filesys/openfile.h \
- ../threads/list.h ../threads/system.h ../threads/scheduler.h \
+ ../userprog/bitmap.h ../threads/system.h ../threads/thread.h \
+ ../machine/machine.h ../userprog/addrspace.h ../filesys/filesys.h \
+ ../filesys/openfile.h ../threads/scheduler.h ../threads/list.h \
  ../machine/interrupt.h ../machine/stats.h ../machine/timer.h
 mipssim.o: ../machine/mipssim.cc \
  /usr/x86_64-linux-gnu/include/stdc-predef.h ../threads/copyright.h \
@@ -851,11 +832,10 @@ mipssim.o: ../machine/mipssim.cc \
  /usr/x86_64-linux-gnu/include/bits/types/__locale_t.h \
  /usr/x86_64-linux-gnu/include/strings.h ../machine/translate.h \
  ../machine/disk.h ../threads/list.h ../threads/utility.h \
- ../userprog/bitmap.h ../userprog/../filesys/openfile.h \
- ../threads/synch.h ../threads/thread.h ../machine/machine.h \
- ../userprog/addrspace.h ../filesys/filesys.h ../filesys/openfile.h \
- ../threads/list.h ../machine/mipssim.h ../threads/system.h \
- ../threads/scheduler.h ../machine/interrupt.h ../machine/stats.h \
+ ../userprog/bitmap.h ../machine/mipssim.h ../threads/system.h \
+ ../threads/thread.h ../machine/machine.h ../userprog/addrspace.h \
+ ../filesys/filesys.h ../filesys/openfile.h ../threads/scheduler.h \
+ ../threads/list.h ../machine/interrupt.h ../machine/stats.h \
  ../machine/timer.h
 translate.o: ../machine/translate.cc \
  /usr/x86_64-linux-gnu/include/stdc-predef.h ../threads/copyright.h \
@@ -886,10 +866,9 @@ translate.o: ../machine/translate.cc \
  /usr/x86_64-linux-gnu/include/bits/types/__locale_t.h \
  /usr/x86_64-linux-gnu/include/strings.h ../machine/translate.h \
  ../machine/disk.h ../threads/list.h ../threads/utility.h \
- ../userprog/bitmap.h ../userprog/../filesys/openfile.h \
- ../threads/synch.h ../threads/thread.h ../machine/machine.h \
- ../userprog/addrspace.h ../filesys/filesys.h ../filesys/openfile.h \
- ../threads/list.h ../threads/system.h ../threads/scheduler.h \
+ ../userprog/bitmap.h ../userprog/addrspace.h ../filesys/filesys.h \
+ ../filesys/openfile.h ../threads/system.h ../threads/thread.h \
+ ../machine/machine.h ../threads/scheduler.h ../threads/list.h \
  ../machine/interrupt.h ../machine/stats.h ../machine/timer.h
 pageschedule.o: ../machine/pageschedule.cc \
  /usr/x86_64-linux-gnu/include/stdc-predef.h ../machine/machine.h \
@@ -920,10 +899,9 @@ pageschedule.o: ../machine/pageschedule.cc \
  /usr/x86_64-linux-gnu/include/bits/types/__locale_t.h \
  /usr/x86_64-linux-gnu/include/strings.h ../machine/translate.h \
  ../machine/disk.h ../threads/list.h ../threads/utility.h \
- ../userprog/bitmap.h ../userprog/../filesys/openfile.h \
- ../threads/synch.h ../threads/thread.h ../machine/machine.h \
- ../userprog/addrspace.h ../filesys/filesys.h ../filesys/openfile.h \
- ../threads/list.h ../threads/system.h ../threads/scheduler.h \
+ ../userprog/bitmap.h ../threads/system.h ../threads/thread.h \
+ ../machine/machine.h ../userprog/addrspace.h ../filesys/filesys.h \
+ ../filesys/openfile.h ../threads/scheduler.h ../threads/list.h \
  ../machine/interrupt.h ../machine/stats.h ../machine/timer.h
 # DEPENDENCIES MUST END AT END OF FILE
 # IF YOU PUT STUFF HERE IT WILL GO AWAY

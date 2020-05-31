@@ -56,6 +56,10 @@ typedef unsigned int uint;
 #define MinNice -20
 #endif
 
+#ifdef LAB5
+#include "openfile.h"
+#endif
+
 
 // CPU register state to be saved on context switch.
 // The SPARC and MIPS only need 10 registers, but the Snake needs 18.
@@ -162,9 +166,6 @@ class Thread {
     int GetNice() { return nice; }
 #endif
 
-#ifdef LAB5
-    OpenEntry OpenTable[MAXOPEN];
-#endif
 
   private:
     // some of the private data for this class is listed above
@@ -202,6 +203,9 @@ class Thread {
     void RestoreUserState();		// restore user-level register state
 
     AddrSpace *space;			// User code this thread is running.
+#endif
+#ifdef LAB5
+    OpenEntry OpenTable[MAXOPEN];
 #endif
 };
 

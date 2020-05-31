@@ -20,6 +20,9 @@
 #include "thread.h"
 #include "disk.h"
 #include "stats.h"
+#ifdef LAB5
+#include "synch.h"
+#endif
 
 #define TransferSize 	10 	// make it small, just to be difficult
 
@@ -260,3 +263,124 @@ PerformanceTest()
     stats->Print();
 }
 
+
+#ifdef LAB5
+Semaphore *fileRemove;
+Semaphore *readerControl;
+
+void fileReader() {
+    readerControl->P();
+    OpenFile *file = fileSystem->Open("/hello");
+    fileRemove->V();
+    char s[6];
+    s[5] = '\0';
+    int *position;
+    for (int i = 0; i != MAXOPEN; ++i) {
+        if (currentThread->OpenTable[i].inUse == 1 && currentThread->OpenTable[i].file == file) {
+            position = &(currentThread->OpenTable[i].position);
+        }
+    }
+    for (int i = 0; i != 5; ++i) {
+        int res = file->ReadAt(s+i, 1, *position);
+        *position = *position + res;
+        printf("%s read char %c\n", currentThread->getName(), s[i]);
+        currentThread->Yield();
+    }
+    printf("%s read %s\n", currentThread->getName(), s);
+    fileSystem->Close(file);
+    printf("%s ends\n", currentThread->getName());
+}
+
+void fileWriter() {
+    OpenFile *file = fileSystem->Open("/hello");
+    fileRemove->V();
+    char s[6] = "HELLO\0";
+    int *position;
+    for (int i = 0; i != MAXOPEN; ++i) {
+        if (currentThread->OpenTable[i].inUse == 1 && currentThread->OpenTable[i].file == file) {
+            position = &(currentThread->OpenTable[i].position);
+        }
+    }
+    int res = file->WriteAt(s, 5, *position, 0);
+    readerControl->V();
+    *position += res;
+    //printf("%s write %c\n", currentThread->getName(), s[i]);
+    currentThread->Yield();
+    fileSystem->Close(file);
+    printf("%s ends\n", currentThread->getName());
+}
+
+void SynFileTest() {
+    printf("begin SynFileTest\n");
+    fileRemove = new Semaphore("file remove", 0);
+    readerControl = new Semaphore("reader control", 2);
+
+    Thread *readerA = new Thread("reader A");
+    readerA->Fork(fileReader, 0);
+
+    Thread *readerB = new Thread("reader B");
+    readerB->Fork(fileReader, 0);
+
+    Thread *readerC = new Thread("reader C");
+    readerC->Fork(fileReader, 0);
+
+    Thread *writerA = new Thread("writer A");
+    writerA->Fork(fileWriter, 0);
+
+    for (int i = 0; i != 4; ++i) {
+        fileRemove->P();
+    }
+    while (fileSystem->Remove("/hello") != Success) {
+        printf("remove \"/hello\" fail\n");
+        currentThread->Yield();
+    }
+    printf("remove \"/hello\" success!\n");
+    return;
+}
+
+OpenFile *cfile;
+OpenFile *pfile;
+
+void Add() {
+    char c;
+    for (;;) {
+        cfile->Read(&c, 1);
+        if (c >= 'a' && c < 'z') {
+            c += 1;
+        } else if (c == 'z') {
+            c = 'a';
+        }
+        pfile->Write(&c, 1, 0);
+        currentThread->Yield();
+    }
+}
+
+void Up() {
+    char c;
+    for (;;) {
+        pfile->Read(&c, 1);
+        if (c >= 'a' && c <= 'z') {
+            c -= 32;
+        }
+        cfile->Write(&c, 1, 0);
+        currentThread->Yield();
+    }
+}
+
+
+void PipeTest() {
+    SynchConsole *console = new SynchConsole(NULL, NULL);
+    Pipe *pipe = new Pipe;
+    cfile = new OpenFile(console);
+    pfile = new OpenFile(pipe);
+
+    Thread *Adder = new Thread("add 1 thread");
+    Adder->Fork(Add, 0);
+
+    Thread *Upper = new Thread("upcase");
+    Upper->Fork(Up, 0);
+    return;
+}
+
+
+#endif

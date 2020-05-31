@@ -27,7 +27,6 @@
 #include "disk.h"
 #include "list.h"
 #include "bitmap.h"
-#include "addrspace.h"
 
 // Definitions related to the size, and format of user memory
 

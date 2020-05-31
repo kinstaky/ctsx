@@ -16,6 +16,7 @@
 #include "copyright.h"
 #include "console.h"
 #include "system.h"
+#include "synch.h"
 
 // Dummy functions because C++ is weird about pointers to member functions
 static void ConsoleReadPoll(int c) 
@@ -167,7 +168,7 @@ SynchConsole::SynchConsole(char *readFile, char *writeFile) {
     readSemaphore = new Semaphore("synch console read", 0);
     writeSemaphore = new Semaphore("synch console write", 0);
     lock = new Lock("synch console lock");
-    console = new Console(readFile, writeFile, ConsoleReadAvail, SynchConsoleWriteDone, 0);
+    console = new Console(readFile, writeFile, ConsoleReadAvail, SynchConsoleWriteDone, this);
 }
 
 

@@ -109,6 +109,7 @@ class Directory {
 #ifdef LAB5
     bool IsEmpty();
     void SetParent(int parent);
+    int Contains();
 #endif
 
   private:

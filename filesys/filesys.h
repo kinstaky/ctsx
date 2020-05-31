@@ -38,6 +38,7 @@
 #include "copyright.h"
 #include "openfile.h"
 
+
 #ifdef FILESYS_STUB 		// Temporarily implement file system calls as 
 				// calls to UNIX, until the real file system
 				// implementation is available
@@ -109,6 +110,7 @@ public:
 
 #ifdef LAB5
     OpenFile *Open(char *name, int dirSector);
+    int Close(OpenFile *file);
     int Create(char *name, int initialSize, int dirSector);
     int CreateDir(char *name);
     int CreateDir(char *name, int dirSector);

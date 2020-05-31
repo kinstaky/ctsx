@@ -15,6 +15,10 @@
 #include "filehdr.h"
 #include "openfile.h"
 #include "system.h"
+#ifdef LAB5
+#include "synch.h"
+#include "console.h"
+#endif
 #ifdef HOST_SPARC
 #include <strings.h>
 #endif
@@ -35,18 +39,31 @@ OpenFile::OpenFile(int sector)
     seekPosition = 0;
 #ifdef LAB5
     hdrSector = sector;
-    // lock = new ReadWriteLock("file read write lock");
+    lock = new ReadWriteLock("file read write lock");
     type = TYPEFILE;
-    // pipe = NULL;
-    // console = NULL;
+    pipe = NULL;
+    console = NULL;
 #endif
 }
 
 
 #ifdef LAB5
-// OpenFile::OpenFile(Pipe *p) {
+OpenFile::OpenFile(Pipe *p) {
+    hdr = NULL;
+    lock = new ReadWriteLock("pipe read write lock");
+    type = TYPEPIPE;
+    pipe = p;
+    console = NULL;
+}
 
-// }
+OpenFile::OpenFile(SynchConsole *c) {
+    hdr = NULL;
+    lock = new ReadWriteLock("console read write lock");
+    type = TYPECONSOLE;
+    pipe = NULL;
+    console = c;
+}
+
 
 #endif
 
@@ -90,16 +107,56 @@ OpenFile::Seek(int position)
 int
 OpenFile::Read(char *into, int numBytes)
 {
+#ifndef LAB5
    int result = ReadAt(into, numBytes, seekPosition);
    seekPosition += result;
+#else
+   int result;
+   if (type == TYPEFILE) {
+        result = ReadAt(into, numBytes, seekPosition);
+        seekPosition += result;
+   } else if (type == TYPEPIPE) {
+        result = 0;
+        for (int i = 0; i != numBytes; ++i) {
+            into[i] = pipe->GetChar();
+            result++;
+        }
+   } else {
+        result = 0;
+        for (int i = 0; i != numBytes; ++i) {
+            into[i] = console->GetChar();
+            result++;
+        }
+   }
+#endif
    return result;
 }
 
 int
 OpenFile::Write(char *into, int numBytes, BitMap *freeMap)
 {
-   int result = WriteAt(into, numBytes, seekPosition, freeMap);
-   seekPosition += result;
+#ifndef LAB5
+    int result = WriteAt(into, numBytes, seekPosition, freeMap);
+    seekPosition += result;
+#else
+    int result;
+    if (type == TYPEFILE) {
+        result = WriteAt(into, numBytes, seekPosition, freeMap);
+        seekPosition += result;
+    } else if (type == TYPEPIPE) {
+        result = 0;
+        for (int i = 0; i != numBytes; ++i) {
+            pipe->PutChar(*(into+i));
+            result++;
+        }
+   } else {
+        result = 0;
+        for (int i = 0; i != numBytes; ++i) {
+            console->PutChar(*(into+i));
+            result++;
+        }
+   }
+#endif
    return result;
 }
 
@@ -133,8 +190,11 @@ int
 OpenFile::ReadAt(char *into, int numBytes, int position)
 {
 #ifdef LAB5
+
    hdr->ChangeReadTime();
+
    lock->ReadAcquire();
+
 #endif
     int fileLength = hdr->FileLength();
     int i, firstSector, lastSector, numSectors;

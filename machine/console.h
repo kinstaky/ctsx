@@ -25,7 +25,6 @@
 
 #include "copyright.h"
 #include "utility.h"
-#include "synch.h"
 
 // The following class defines a hardware console device.
 // Input and output to the device is simulated by reading 
@@ -74,7 +73,6 @@ class Console {
 };
 
 
-#ifdef LAB5
 
 class Lock;
 class Semaphore;
@@ -95,7 +93,5 @@ private:
     Semaphore *writeSemaphore;
 };
 
-
-#endif
 
 #endif // CONSOLE_H

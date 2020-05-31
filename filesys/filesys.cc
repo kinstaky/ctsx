@@ -51,6 +51,10 @@
 #include "filehdr.h"
 #include "filesys.h"
 
+#ifdef LAB5
+#include "thread.h"
+#endif
+
 // Sectors containing the file headers for the bitmap of free sectors,
 // and the directory of files.  These file headers are placed in well-known
 // sectors, so that they can be located on boot-up.
@@ -338,7 +342,7 @@ int FileSystem::CreateDir(char *name) {
 //----------------------------------------------------------------------
 
 int FileSystem::namex(char *name, char *&fileName) {
-printf("namex: fileName is %s\n", name);
+//printf("namex: fileName is %s\n", name);
     fileName = name+1;                  // first char is '/' in root directory
     char *pch;
     int sector = 1;
@@ -418,13 +422,38 @@ OpenFile* FileSystem::Open(char *name, int dirSector) {
                 fileTable[i].sector = sector;
                 fileTable[i].num = 1;
                 fileTable[i].file = openFile;
+                for (int j = 0; j != MAXOPEN; ++j) {
+                    if (currentThread->OpenTable[j].inUse == 0) {
+                        currentThread->OpenTable[j].inUse = 1;
+                        currentThread->OpenTable[j].file = openFile;
+                        currentThread->OpenTable[j].position = 0;
+                        break;
+                    }
+                }
                 break;
             }
         }
         return openFile;
     } else {
-        fileTable[opened].num += 1;
-        return fileTable[opened].file;
+        int threadOpened = -1;
+        for (int j = 0; j != MAXOPEN; ++j) {
+            if (currentThread->OpenTable[j].inUse == 1 && currentThread->OpenTable[j].file == fileTable[opened].file) {
+                threadOpened = j;
+            }
+        }
+        if (threadOpened == -1) {
+            for (int j = 0; j != MAXOPEN; ++j) {
+                if (currentThread->OpenTable[j].inUse == 0) {
+                    currentThread->OpenTable[j].inUse = 1;
+                    currentThread->OpenTable[j].file = fileTable[opened].file;
+                    currentThread->OpenTable[j].position = 0;
+                    fileTable[opened].num += 1;
+                    return fileTable[opened].file;
+                }
+            }
+            return NULL;        // thread's open table full
+        }
+        return NULL;        // thread already open this file
     }
 }
 
@@ -514,7 +543,7 @@ int FileSystem::Remove(char *name, int dirSector) {
     // check if opened
     for (int i = 0; i != MAXFILEOPEN; ++i) {
         if (fileTable[i].inUse == 1 && fileTable[i].sector == sector) {
-            printf("Remove: file opend\n");
+            //printf("Remove: file opend %d\n", fileTable[i].num);
             delete directory;
             delete dirFile;
             return FileOpened;
@@ -690,3 +719,27 @@ FileSystem::Print()
     delete freeMap;
     delete directory;
 }
+
+
+#ifdef LAB5
+int FileSystem::Close(OpenFile *file) {
+    for (int i = 0; i != MAXFILEOPEN; ++i) {
+        if (fileTable[i].inUse == 1 && fileTable[i].file == file) {
+            fileTable[i].num -= 1;
+            if (fileTable[i].num == 0) {
+                delete file;
+                fileTable[i].inUse = 0;
+            }
+            for (int j = 0; j != MAXOPEN; ++j) {
+                if (currentThread->OpenTable[j].inUse == 1 && currentThread->OpenTable[j].file == file) {
+                    currentThread->OpenTable[j].inUse = 0;
+//printf("Close success, global open num is %d\n", fileTable[i].num);
+                    return 0;
+                }
+            }
+            return -1;      // file not found in thread
+        }
+    }
+    return -1;          // file not found
+}
+#endif

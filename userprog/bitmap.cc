@@ -8,6 +8,7 @@
 
 #include "copyright.h"
 #include "bitmap.h"
+#include "openfile.h"
 
 //----------------------------------------------------------------------
 // BitMap::BitMap
@@ -161,5 +162,9 @@ BitMap::FetchFrom(OpenFile *file)
 void
 BitMap::WriteBack(OpenFile *file)
 {
-   file->WriteAt((char *)map, numWords * sizeof(unsigned), 0);
+#ifdef FILESYS
+    file->WriteAt((char *)map, numWords * sizeof(unsigned), 0, 0);
+#else
+    file->WriteAt((char *)map, numWords * sizeof(unsigned), 0);
+#endif
 }

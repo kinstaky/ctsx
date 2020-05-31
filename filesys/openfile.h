@@ -22,8 +22,10 @@
 
 #include "copyright.h"
 #include "utility.h"
+#ifdef LAB5
 #include "bitmap.h"
-#include "synch.h"
+#include "console.h"
+#endif
 
 #ifdef FILESYS_STUB			// Temporarily implement calls to
 					// Nachos file system as calls to UNIX!
@@ -68,18 +70,21 @@ class OpenFile {
 
 class FileHeader;
 
-class BitMap;
 
 #ifdef LAB5
 class ReadWriteLock;
 class Pipe;
-class Console;
+//class SynchConsole;
 #endif
 
 class OpenFile {
   public:
     OpenFile(int sector);		// Open a file whose header is located
 					// at "sector" on the disk
+#ifdef LAB5
+    OpenFile(Pipe *p);
+    OpenFile(SynchConsole *c);
+#endif
     ~OpenFile();			// Close the file
 
     void Seek(int position); 		// Set the position from which to
@@ -112,8 +117,8 @@ class OpenFile {
     int hdrSector;
     ReadWriteLock *lock;
     int type;
-    //Pipe *pipe;
-    //Console *console;
+    Pipe *pipe;
+    SynchConsole *console;
 #endif
 };
 

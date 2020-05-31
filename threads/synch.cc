@@ -98,7 +98,6 @@ Semaphore::V()
 }
 
 
-#ifdef LAB3
 //----------------------------------------------------------------------
 // Lock::Lock
 // init the lock, set the name to debugName and the owner to NULL
@@ -333,21 +332,21 @@ void ReadWriteLock::WriteRelease() {
 }
 
 
-#else
+
 // Dummy functions -- so we can compile our later assignments
 // Note -- without a correct implementation of Condition::Wait(),
 // the test case in the network assignment won't work!
-Lock::Lock(char* debugName) {}
-Lock::~Lock() {}
-void Lock::Acquire() {}
-void Lock::Release() {}
+// Lock::Lock(char* debugName) {}
+// Lock::~Lock() {}
+// void Lock::Acquire() {}
+// void Lock::Release() {}
 
-Condition::Condition(char* debugName) { }
-Condition::~Condition() { }
-void Condition::Wait(Lock* conditionLock) { ASSERT(FALSE); }
-void Condition::Signal(Lock* conditionLock) { }
-void Condition::Broadcast(Lock* conditionLock) { }
-#endif
+// Condition::Condition(char* debugName) { }
+// Condition::~Condition() { }
+// void Condition::Wait(Lock* conditionLock) { ASSERT(FALSE); }
+// void Condition::Signal(Lock* conditionLock) { }
+// void Condition::Broadcast(Lock* conditionLock) { }
+
 
 
 #ifdef LAB5

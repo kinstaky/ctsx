@@ -107,7 +107,7 @@ void FileHeader::SetParent(int psector) {
 //  "fileSize" is the bit map of free disk sectors
 //----------------------------------------------------------------------
 bool FileHeader::Allocate(BitMap *freeMap, int fileSize) {
-printf("Allocate %d\n", fileSize);
+//printf("Allocate %d\n", fileSize);
     if (fileSize == 0) return true;
     if (fileSize > 0) {
         MixDirSector mds;
@@ -206,7 +206,7 @@ printf("Allocate %d\n", fileSize);
     }
 
     numBytes += fileSize;
-printf("%s:%d\n", __FILE__, __LINE__);
+//printf("%s:%d\n", __FILE__, __LINE__);
     return true;
 }
 

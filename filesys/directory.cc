@@ -114,8 +114,8 @@ Directory::FindIndex(char *name)
     for (int i = 0; i < tableSize; i++) {
         char *fileName = new char[table[i].nameLength+1];
         getFileName(table+i, fileName);
-printf("tabel[%d].Use = %d, fileName %s, searchName: %s\n", i, table[i].inUse, fileName, name);
-printf("strcmp(fileName, name) = %d\n", strcmp(fileName, name));
+//printf("tabel[%d].Use = %d, fileName %s, searchName: %s\n", i, table[i].inUse, fileName, name);
+//printf("strcmp(fileName, name) = %d\n", strcmp(fileName, name));
         if (table[i].inUse && !strcmp(fileName, name)) {
 	        delete[] fileName;
             return i;
@@ -263,7 +263,7 @@ Directory::List(bool Recursive = true)
             char *fileName = new char[table[i].nameLength+1];
             getFileName(table+i, fileName);
             printf("%s\n", fileName);
-printf("---------------sector %d\n", sector);
+//printf("---------------sector %d\n", sector);
             delete[] fileName;
         }
     }
@@ -282,7 +282,7 @@ printf("---------------sector %d\n", sector);
                     getFileName(table+i, fileName);
                     OpenFile *dirFile = new OpenFile(sector);
                     dir->FetchFrom(dirFile);
-                    printf("\n%s  (contains %d files) :\n", fileName, dir->tableSize);
+                    printf("\n%s  (contains %d files) :\n", fileName, dir->Contains());
                     dir->List(Recursive);
                     delete dirFile;
                     delete[] fileName;
@@ -461,6 +461,16 @@ bool Directory::IsEmpty() {
 void Directory::SetParent(int parent) {
     ASSERT(table[0].nameLength == 2 && table[0].dirName[0] == '.' && table[0].dirName[1] == '.');
     table[0].sector = parent;
+}
+
+int Directory::Contains() {
+    int res = 0;
+    for (int i = 1; i != tableSize; ++i) {
+        if (table[i].inUse == 1) {
+            ++res;
+        }
+    }
+    return res;
 }
 
 #endif

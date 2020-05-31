@@ -87,7 +87,7 @@ void
 ConsoleTest (char *in, char *out)
 {
     char ch;
-# ifdef LAB5
+#ifdef LAB5
     SynchConsole *synConsole = new SynchConsole(in, out);
     for (;;) {
         ch = synConsole->GetChar();

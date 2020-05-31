@@ -70,6 +70,8 @@ extern void StartNProcess(char *file, int count);
 
 #ifdef LAB5
 extern void Remove(char *name), MakeDir(char *file);
+extern void SynFileTest();
+extern void PipeTest();
 #endif
 
 //----------------------------------------------------------------------
@@ -160,6 +162,10 @@ main(int argc, char **argv)
 	} else if (!strcmp(*argv, "-md")) {		// create a directory
 		MakeDir(*(argv + 1));
 		argCount = 2;
+	} else if (!strcmp(*argv, "-sft")) {	// synch file test
+		SynFileTest();
+	} else if (!strcmp(*argv, "-pt")) {		// pipe test
+		PipeTest();
 #endif
 	} else if (!strcmp(*argv, "-l")) {	// list Nachos directory
             fileSystem->List();
