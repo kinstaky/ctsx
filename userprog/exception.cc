@@ -34,6 +34,41 @@ int Hash(int vpn, int c) {
 
 #endif
 
+#ifdef LAB6
+void GetString(int addr, char *buffer) {
+	char ch = 'a';
+	int i = 0;
+	while (ch != '\0') {
+		while (!machine->ReadMem(addr+i, 1, (int*)&ch)) {
+			machine->RaiseException(PageFaultException, addr+i);
+		}
+		//printf("%d %c\n", i, ch);
+		buffer[i] = ch;
+		i++;
+	}
+}
+
+
+void ReadMem(char *buffer, int addr, int size) {
+	char ch;
+	for (int i = 0; i != size; ++i) {
+		while (!machine->ReadMem(addr+i, 1, (int*)&ch)) {
+			machine->RaiseException(PageFaultException, addr+i);
+		}
+		buffer[i] = ch;
+	}
+}
+
+void WriteMem(char *buffer, int addr, int size) {
+	for (int i = 0; i != size; ++i) {
+		while (!machine->WriteMem(addr+i, 1, buffer[i])) {
+			machine->RaiseException(PageFaultException, addr+i);
+		}
+	}
+}
+
+
+#endif
 
 
 //----------------------------------------------------------------------
@@ -63,6 +98,7 @@ void
 ExceptionHandler(ExceptionType which)
 {
     int type = machine->ReadRegister(2);
+//printf("ExceptionHandler\n");
 
     if ((which == SyscallException) && (type == SC_Halt)) {
 		DEBUG('a', "Shutdown, initiated by user program.\n");
@@ -71,11 +107,60 @@ ExceptionHandler(ExceptionType which)
 #ifdef LAB4
    	else if (which == SyscallException) {
    		if (type == SC_Exit) {
-   			printf("Exit code: %d\n", machine->registers[4]);
+printf("Exit code: %d\n", machine->registers[4]);
    			DEBUG('a', "Exit %d\n", machine->registers[4]);
+#ifdef LAB6
+//fileSystem->PrintID(machine->registers[4]);
+   			for (int i = 0; i != MAXOPEN; ++i) {
+   				if (currentThread->OpenTable[i].inUse == 1) {
+   					fileSystem->Close(currentThread->OpenTable[i].file);
+   				}
+   			}
+			fileSystem->Remove(currentThread->space->fileName);
+#endif
    			currentThread->Finish();
    			//interrupt->Halt();
+#ifdef LAB6
+   		} else if (type == SC_Create) {
+   			char buffer[32];
+   			GetString(machine->registers[4], (char*)buffer);
+   			DEBUG('a', "Create file %s\n", buffer);
+   			fileSystem->Create(buffer, 0);
+//printf("Create file %s\n", buffer);
+
+   		} else if (type == SC_Open) {
+   			char buffer[32];
+   			GetString(machine->registers[4], (char*)buffer);
+   			DEBUG('a', "Open file %s\n", buffer);
+   			int id = fileSystem->OpenID(buffer);
+   			machine->registers[2] = id;
+
+   		} else if (type == SC_Write) {
+   			char *buffer = new char[machine->registers[5]];
+   			ReadMem(buffer, machine->registers[4], machine->registers[5]);
+//printf("Write file %d with %d bytes string:%s\n", machine->registers[6], machine->registers[5], buffer);
+   			//DEBUG('a', "Write file from %p of %d bytes in file %d\n", machine->registers[4], machine->registers[5], machine->registers[6]);
+   			fileSystem->WriteID(buffer, machine->registers[5], machine->registers[6]);
+//fileSystem->PrintID(machine->registers[6]);
+   			delete[] buffer;
+
+   		} else if (type == SC_Read) {
+//printf("In reading syscall\n");
+//fileSystem->PrintID(machine->registers[6]);
+   			char *buffer = new char[machine->registers[5]];
+   			machine->registers[2] = fileSystem->ReadID(buffer, machine->registers[5], machine->registers[6]);
+   			WriteMem(buffer, machine->registers[4], machine->registers[5]);
+//printf("read file %d with %d bytes and get string:%s\n", machine->registers[6], machine->registers[5], buffer);
+   			//DEBUG('a', "Read file from %p of %d bytes in file %d\n", machine->registers[4], machine->registers[5], machine->registers[6]);
+
+   		} else if (type == SC_Close) {
+//fileSystem->PrintID(machine->registers[4]);
+
+   			DEBUG('a', "Close file %d\n", machine->registers[4]);
+   			fileSystem->CloseID(machine->registers[4]);
+#endif
    		}
+
    	}
     else if (which == PageFaultException) {
     	DEBUG('a', "PageFaultException\n");
@@ -169,7 +254,6 @@ void Machine::PageTableReplace(int vpn, int *ppn) {
 
 	if (!ReversePageTable) {
 		if (memoryMap->NumClear() == 0) {			// no frame available
-
 			entry = pageTableScheduler->Remove();
 			*ppn = entry->physicalPage;
 
@@ -181,7 +265,11 @@ void Machine::PageTableReplace(int vpn, int *ppn) {
 			}
 
 			if (entry->dirty) {
+#ifndef LAB6
 				currentThread->space->DiskWrite(mainMemory+(entry->physicalPage)*PageSize, (entry->virtualPage)*PageSize, PageSize);
+#else
+				currentThread->space->FileWrite(mainMemory+(entry->physicalPage)*PageSize, PageSize, (entry->virtualPage)*PageSize);
+#endif
 			}
 			entry->valid = false;
 
@@ -189,8 +277,12 @@ void Machine::PageTableReplace(int vpn, int *ppn) {
 		else {
 			*ppn = memoryMap->Find();
 		}
-		pageTableScheduler->Insert(&pageTable[vpn]);
+#ifndef LAB6
 		currentThread->space->DiskRead(mainMemory+(*ppn)*PageSize, vpn*PageSize, PageSize);
+#else
+		currentThread->space->FileRead(mainMemory+(*ppn)*PageSize, PageSize, vpn*PageSize);
+#endif
+		pageTableScheduler->Insert(&pageTable[vpn]);
 		pageTable[vpn].valid = true;
 		pageTable[vpn].dirty = false;
 		pageTable[vpn].readOnly = false;
@@ -206,7 +298,11 @@ void Machine::PageTableReplace(int vpn, int *ppn) {
 				int index = Hash(vpn, i);
 				if (pageTable[index].thread && pageTable[index].thread != currentThread) {
 					if (pageTable[index].valid && pageTable[index].dirty) {
+#ifndef LAB6
 						((Thread*)(pageTable[index].thread))->space->DiskWrite(mainMemory+pageTable[index].physicalPage*PageSize, pageTable[index].virtualPage*PageSize, PageSize);
+#else
+						((Thread*)(pageTable[index].thread))->space->FileWrite(mainMemory+pageTable[index].physicalPage*PageSize, PageSize, pageTable[index].virtualPage*PageSize);
+#endif
 						pageTableScheduler->Remove(&pageTable[index]);
 						pageTable[index].thread = NULL;
 						pageTable[index].dirty = false;
@@ -223,7 +319,11 @@ void Machine::PageTableReplace(int vpn, int *ppn) {
 				*ppn = entry->physicalPage;
 
 				if (entry->dirty && entry->thread) {
+#ifndef LAB6
 					((Thread*)(entry->thread))->space->DiskWrite(mainMemory+entry->physicalPage*PageSize, entry->virtualPage*PageSize, PageSize);
+#else
+					((Thread*)(entry->thread))->space->FileWrite(mainMemory+entry->physicalPage*PageSize, PageSize, entry->virtualPage*PageSize);
+#endif
 				}
 
 				// clear the TLB entry if the physical page was replaced
@@ -246,11 +346,11 @@ void Machine::PageTableReplace(int vpn, int *ppn) {
 			}
 		}
 		ASSERT(*ppn != -1);
-
-		//printf("%s: %d\n", __FILE__, __LINE__);
+#ifndef LAB6
 		currentThread->space->DiskRead(mainMemory+(*ppn)*PageSize, vpn*PageSize, PageSize);
-		//printf("%s: %d\n", __FILE__, __LINE__);
-
+#else
+		currentThread->space->FileRead(mainMemory+(*ppn)*PageSize, PageSize, vpn*PageSize);
+#endif
 		pageTableScheduler->Insert(&pageTable[*ppn]);
 		pageTable[*ppn].valid = true;
 		pageTable[*ppn].dirty = false;

@@ -19,7 +19,7 @@
 #define UserStackSize		1024 	// increase this as necessary!
 
 
-
+#ifndef LAB6
 class VirtualDisk {
 public:
 	VirtualDisk(unsigned int size);
@@ -33,6 +33,7 @@ private:
 	unsigned int diskSize;
 	char *data;
 };
+#endif
 
 
 class AddrSpace {
@@ -40,6 +41,9 @@ public:
     AddrSpace(OpenFile *executable);	// Create an address space,
 					// initializing it with the program
 					// stored in the file "executable"
+#ifdef LAB6
+    AddrSpace(char *fileName);
+#endif
     ~AddrSpace();			// De-allocate an address space
 
     void InitRegisters();		// Initialize user-level CPU registers,
@@ -47,9 +51,18 @@ public:
 
     void SaveState();			// Save/restore address space-specific
     void RestoreState();		// info on a context switch 
+#ifndef LAB6
 #ifdef LAB4
     int DiskRead(char *memory, int virtualAddr, int size);
 	int DiskWrite(char *memory, int virtualAddr, int size);
+#endif // LAB4
+#else // LAB6
+	int FileRead(char *from, int size, int virtualAddr);
+	int FileWrite(char *from, int size, int virtualAddr);
+#endif
+
+#ifdef LAB6
+	char *fileName;
 #endif
 
 private:
@@ -57,8 +70,12 @@ private:
 					// for now!
     unsigned int numPages;		// Number of pages in the virtual 
 					// address space
+#ifndef LAB6
 #ifdef LAB4
     VirtualDisk *disk;
+#endif
+#else
+    OpenFile *file;
 #endif
 };
 

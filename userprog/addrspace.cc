@@ -45,6 +45,7 @@ SwapHeader (NoffHeader *noffH)
     noffH->uninitData.inFileAddr = WordToHost(noffH->uninitData.inFileAddr);
 }
 
+#ifndef LAB6
 //----------------------------------------------------------------------
 // VirtualDisk::VirtalDisk
 // Simulate the disk, just allocate space from the memory
@@ -143,6 +144,7 @@ void VirtualDisk::Print() {
         else if (i % 2 == 1) printf(" ");
     }
 }
+#endif
 
 
 //----------------------------------------------------------------------
@@ -235,6 +237,7 @@ AddrSpace::AddrSpace(OpenFile *executable)
     if (noffH.uninitData.size > 0) printf("noffH.uninitData.inFileAddr 0x%x, noffH.uninitData.size %x\n", noffH.uninitData.inFileAddr, noffH.uninitData.size);
 #else
     // set the virtual disk and save the file into the disk
+#ifndef LAB6
     disk = new VirtualDisk(size);
     if (noffH.code.size > 0) {
         DEBUG('a', "Initializing code segment, at 0x%x, size %d\n", 
@@ -248,9 +251,91 @@ AddrSpace::AddrSpace(OpenFile *executable)
         executable->ReadAt(disk->DiskMemory(noffH.initData.virtualAddr),
             noffH.initData.size, noffH.initData.inFileAddr);
     }
-    //disk->Print();
 #endif
+
+    // if (noffH.code.size > 0) {
+    //     printf("code segment va %d, size %d, inFileAddr %d\n", noffH.code.virtualAddr, noffH.code.size, noffH.code.inFileAddr);
+    // }
+    // if (noffH.initData.size > 0) {
+    //     printf("init data va %d, size %d, inFileAddr %d\n", noffH.initData.virtualAddr, noffH.initData.size, noffH.initData.inFileAddr);
+    // }
+    //disk->Print();
+#endif // LAB4
 }
+
+#ifdef LAB6
+AddrSpace::AddrSpace(char *filename) {
+    OpenFile *executable = fileSystem->Open(filename);
+    NoffHeader noffH;
+    unsigned int i, size;
+
+    executable->ReadAt((char *)&noffH, sizeof(noffH), 0);
+    if ((noffH.noffMagic != NOFFMAGIC) && 
+        (WordToHost(noffH.noffMagic) == NOFFMAGIC))
+        SwapHeader(&noffH);
+    ASSERT(noffH.noffMagic == NOFFMAGIC);
+
+// how big is address space?
+    size = noffH.code.size + noffH.initData.size + noffH.uninitData.size 
+            + UserStackSize;    // we need to increase the size
+                        // to leave room for the stack
+    numPages = divRoundUp(size, PageSize);
+    size = numPages * PageSize;
+
+
+    if (!machine->ReversePageTable) {
+        DEBUG('a', "Initializing address space, num pages %d, size %d\n", 
+                    numPages, size);
+        // first, set up the translation 
+        pageTable = new TranslationEntry[numPages];
+
+        for (i = 0; i < numPages; i++) {
+            pageTable[i].virtualPage = i;
+            pageTable[i].physicalPage = -1;
+            pageTable[i].thread = NULL;
+            pageTable[i].valid = false;      // lazy loading, all not available
+            pageTable[i].use = FALSE;
+            pageTable[i].dirty = FALSE;
+            pageTable[i].readOnly = FALSE;  // if the code segment was entirely on 
+                            // a separate page, we could set its 
+                            // pages to be read-only
+        }
+    }
+
+    fileName = new char[5+strlen(filename)];
+    sprintf(fileName, "/tmp/.%s", filename+1);
+printf("fileName %s\n", fileName);
+    fileSystem->Create(fileName, size);
+    file = fileSystem->Open(fileName);
+
+    char buffer[PageSize];
+
+    if (noffH.code.size > 0) {
+        DEBUG('a', "Initializing code segment, at 0x%x, size %d\n", 
+            noffH.code.virtualAddr, noffH.code.size);
+        int codePages = divRoundDown(noffH.code.size, PageSize);
+        for (int i = 0; i != codePages; ++i) {
+            executable->ReadAt((char*)buffer, PageSize, noffH.code.inFileAddr+i*PageSize);
+            file->WriteAt((char*)buffer, PageSize, noffH.code.virtualAddr+i*PageSize, 0);
+        }
+        executable->ReadAt((char*)buffer, noffH.code.size-codePages*PageSize, noffH.code.inFileAddr+codePages*PageSize);
+        file->WriteAt((char*)buffer, noffH.code.size-codePages*PageSize, noffH.code.virtualAddr+codePages*PageSize, 0);
+    }
+    if (noffH.initData.size > 0) {
+        DEBUG('a', "Initializing data segment, at 0x%x, size %d\n", 
+            noffH.initData.virtualAddr, noffH.initData.size);
+        int dataPages = divRoundDown(noffH.initData.size, PageSize);
+        for (int i = 0; i != dataPages; ++i) {
+            executable->ReadAt((char*)buffer, PageSize, noffH.initData.inFileAddr+i*PageSize);
+            file->WriteAt((char*)buffer, PageSize, noffH.initData.virtualAddr+i*PageSize, 0);
+        }
+        executable->ReadAt((char*)buffer, noffH.initData.size-dataPages*PageSize, noffH.initData.inFileAddr+dataPages*PageSize);
+        file->WriteAt((char*)buffer, noffH.initData.size-dataPages*PageSize, noffH.initData.virtualAddr+dataPages*PageSize, 0);
+    }
+}
+
+
+#endif
 
 //----------------------------------------------------------------------
 // AddrSpace::~AddrSpace
@@ -335,7 +420,7 @@ void AddrSpace::RestoreState()
 #endif
 }
 
-
+#ifndef LAB6
 #ifdef LAB4
 //----------------------------------------------------------------------
 // AddrSpace::DiskRead
@@ -354,6 +439,15 @@ int AddrSpace::DiskRead(char *memory, int virtualAddr, int size) {
 
 int AddrSpace::DiskWrite(char *memory, int virtualAddr, int size) {
     return disk->Write(memory, virtualAddr, size);
+}
+#endif // LAB4
+#else // LAB6
+int AddrSpace::FileRead(char *from, int size, int virtualAddr) {
+    return file->ReadAt(from, size, virtualAddr);
+}
+
+int AddrSpace::FileWrite(char *from, int size, int virtualAddr) {
+    return file->WriteAt(from, size, virtualAddr, 0);
 }
 
 #endif
