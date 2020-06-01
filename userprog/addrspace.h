@@ -43,6 +43,7 @@ public:
 					// stored in the file "executable"
 #ifdef LAB6
     AddrSpace(char *fileName);
+    AddrSpace(const AddrSpace &space);
 #endif
     ~AddrSpace();			// De-allocate an address space
 
@@ -63,6 +64,7 @@ public:
 
 #ifdef LAB6
 	char *fileName;
+	char *originName;
 #endif
 
 private:

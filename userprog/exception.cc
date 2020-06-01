@@ -35,6 +35,17 @@ int Hash(int vpn, int c) {
 #endif
 
 #ifdef LAB6
+
+struct ExecArg {
+	int id;
+	char name[32];
+};
+
+struct ForkArg{
+	int address;
+	AddrSpace *space;
+};
+
 void GetString(int addr, char *buffer) {
 	char ch = 'a';
 	int i = 0;
@@ -65,6 +76,40 @@ void WriteMem(char *buffer, int addr, int size) {
 			machine->RaiseException(PageFaultException, addr+i);
 		}
 	}
+}
+
+void StartNewProcess(ExecArg *args) {
+//printf("start new process\n");
+    AddrSpace *space;
+    space = new AddrSpace(args->name);
+    currentThread->space = space;
+    currentThread->SpaceId = args->id;
+    delete args;
+
+    space->InitRegisters();		// set the initial register values
+    space->RestoreState();		// load page table register
+
+    machine->Run();			// jump to the user progam
+    ASSERT(FALSE);			// machine->Run never returns;
+}
+
+
+void ForkProcess(ForkArg *args) {
+	AddrSpace *space;
+	space = new AddrSpace(*(args->space));
+	currentThread->space = space;
+	space->InitRegisters();
+	space->RestoreState();
+
+	// to run at in the specific function
+	machine->WriteRegister(PCReg, args->address);
+    machine->WriteRegister(NextPCReg, args->address+4);
+    machine->WriteRegister(RetAddrReg, 4);
+
+	//delete args;
+	machine->Run();
+	ASSERT(FALSE);
+	return;
 }
 
 
@@ -117,6 +162,12 @@ printf("Exit code: %d\n", machine->registers[4]);
    				}
    			}
 			fileSystem->Remove(currentThread->space->fileName);
+			int id = currentThread->SpaceId;
+			ASSERT(machine->SpaceTable[id].inUse == 1);
+			if (machine->SpaceTable[id].wait) {
+				machine->SpaceTable[id].wait->V();
+			}
+
 #endif
    			currentThread->Finish();
    			//interrupt->Halt();
@@ -145,8 +196,6 @@ printf("Exit code: %d\n", machine->registers[4]);
    			delete[] buffer;
 
    		} else if (type == SC_Read) {
-//printf("In reading syscall\n");
-//fileSystem->PrintID(machine->registers[6]);
    			char *buffer = new char[machine->registers[5]];
    			machine->registers[2] = fileSystem->ReadID(buffer, machine->registers[5], machine->registers[6]);
    			WriteMem(buffer, machine->registers[4], machine->registers[5]);
@@ -154,10 +203,49 @@ printf("Exit code: %d\n", machine->registers[4]);
    			//DEBUG('a', "Read file from %p of %d bytes in file %d\n", machine->registers[4], machine->registers[5], machine->registers[6]);
 
    		} else if (type == SC_Close) {
-//fileSystem->PrintID(machine->registers[4]);
 
    			DEBUG('a', "Close file %d\n", machine->registers[4]);
    			fileSystem->CloseID(machine->registers[4]);
+
+   		} else if (type == SC_Exec) {
+
+   			ExecArg *args = new ExecArg;
+   			GetString(machine->registers[4], (char*)args->name);
+   			for (int i = 0; i != MAXSPACE; ++i) {
+   				if (machine->SpaceTable[i].inUse == 0) {
+   					machine->SpaceTable[i].inUse = 1;
+   					machine->SpaceTable[i].wait = NULL;
+   					args->id = i;
+   					break;
+   				}
+   			}
+   			machine->registers[2] = args->id;
+   			Thread *thread = new Thread("exec thread");
+   			thread->Fork(StartNewProcess, (void*)args);
+   			//currentThread->Yield();
+
+   		} else if (type == SC_Join) {
+
+   			int id = machine->registers[4];
+   			machine->SpaceTable[id].wait = new Semaphore("user wait space", 0);
+   			machine->SpaceTable[id].wait->P();
+   			machine->SpaceTable[id].inUse = 0;
+   			delete machine->SpaceTable[id].wait;
+
+   		} else if (type == SC_Fork) {
+
+   			ForkArg *args = new ForkArg;
+   			args->address = machine->registers[4];
+   			args->space = currentThread->space;
+
+   			Thread *thread = new Thread("fork thread");
+   			thread->Fork(ForkProcess, (void*)args);
+
+
+   		} else if (type == SC_Yield) {
+
+   			//printf("syscall yield\n");
+   			currentThread->Yield();
 #endif
    		}
 

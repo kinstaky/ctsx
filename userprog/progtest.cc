@@ -29,6 +29,9 @@ StartProcess(char *filename)
     AddrSpace *space;
     space = new AddrSpace(filename);
     currentThread->space = space;
+    currentThread->SpaceId = 0;
+    machine->SpaceTable[0].inUse = 1;
+    //machine->SpaceTable[0].wait = new Semaphore("user wait space", 0);
 #else
     OpenFile *executable = fileSystem->Open(filename);
     AddrSpace *space;
