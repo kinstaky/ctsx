@@ -738,7 +738,7 @@ progtest.o: ../userprog/progtest.cc \
  ../userprog/addrspace.h ../filesys/filesys.h ../filesys/openfile.h \
  ../threads/scheduler.h ../threads/list.h ../machine/interrupt.h \
  ../machine/stats.h ../machine/timer.h ../machine/console.h \
- ../threads/synch.h ../userprog/addrspace.h
+ ../userprog/addrspace.h ../threads/synch.h
 console.o: ../machine/console.cc \
  /usr/x86_64-linux-gnu/include/stdc-predef.h ../threads/copyright.h \
  ../machine/console.h ../threads/utility.h ../threads/copyright.h \
@@ -766,13 +766,13 @@ console.o: ../machine/console.cc \
  /usr/x86_64-linux-gnu/include/string.h \
  /usr/x86_64-linux-gnu/include/bits/types/locale_t.h \
  /usr/x86_64-linux-gnu/include/bits/types/__locale_t.h \
- /usr/x86_64-linux-gnu/include/strings.h ../threads/synch.h \
- ../threads/thread.h ../threads/utility.h ../machine/machine.h \
+ /usr/x86_64-linux-gnu/include/strings.h ../threads/system.h \
+ ../threads/utility.h ../threads/thread.h ../machine/machine.h \
  ../machine/translate.h ../machine/disk.h ../threads/list.h \
  ../userprog/bitmap.h ../userprog/addrspace.h ../filesys/filesys.h \
- ../filesys/openfile.h ../threads/list.h ../threads/system.h \
- ../threads/scheduler.h ../machine/interrupt.h ../machine/stats.h \
- ../machine/timer.h
+ ../filesys/openfile.h ../threads/scheduler.h ../threads/list.h \
+ ../machine/interrupt.h ../machine/stats.h ../machine/timer.h \
+ ../threads/synch.h
 machine.o: ../machine/machine.cc \
  /usr/x86_64-linux-gnu/include/stdc-predef.h ../threads/copyright.h \
  ../machine/machine.h ../threads/utility.h ../threads/copyright.h \

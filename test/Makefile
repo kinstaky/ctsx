@@ -37,7 +37,7 @@ CPP = gcc -E
 INCDIR =-I../userprog -I../threads
 CFLAGS = -G 0 -c $(INCDIR)
 
-all: halt shell matmult sort
+all: halt shell matmult sort init fileA fileB hello exec fork
 
 start.o: start.s ../userprog/syscall.h
 	$(CPP) $(CPPFLAGS) start.c > strt.s
@@ -67,3 +67,39 @@ matmult.o: matmult.c
 matmult: matmult.o start.o
 	$(LD) $(LDFLAGS) start.o matmult.o -o matmult.coff
 	../bin/coff2noff matmult.coff matmult
+
+init.o: init.c
+	$(CC) $(CFLAGS) -c init.c
+init: init.o start.o
+	$(LD) $(LDFLAGS) start.o init.o -o init.coff
+	../bin/coff2noff init.coff init
+
+fileA.o: fileA.c
+	$(CC) $(CFLAGS) -c fileA.c
+fileA: fileA.o start.o
+	$(LD) $(LDFLAGS) start.o fileA.o -o fileA.coff
+	../bin/coff2noff fileA.coff fileA
+
+fileB.o: fileB.c
+	$(CC) $(CFLAGS) -c fileB.c
+fileB: fileB.o start.o
+	$(LD) $(LDFLAGS) start.o fileB.o -o fileB.coff
+	../bin/coff2noff fileB.coff fileB
+
+hello.o: hello.c
+	$(CC) $(CFLAGS) -c hello.c
+hello: hello.o start.o
+	$(LD) $(LDFLAGS) start.o hello.o -o hello.coff
+	../bin/coff2noff hello.coff hello
+
+exec.o: exec.c
+	$(CC) $(CFLAGS) -c exec.c
+exec: exec.o start.o
+	$(LD) $(LDFLAGS) start.o exec.o -o exec.coff
+	../bin/coff2noff exec.coff exec
+
+fork.o: fork.c
+	$(CC) $(CFLAGS) -c fork.c
+fork: fork.o start.o
+	$(LD) $(LDFLAGS) start.o fork.o -o fork.coff
+	../bin/coff2noff fork.coff fork

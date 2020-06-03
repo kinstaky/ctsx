@@ -122,11 +122,11 @@ main(int argc, char **argv)
 #ifdef USER_PROGRAM
         if (!strcmp(*argv, "-x")) {        	// run a user program
 	    ASSERT(argc > 1);
-#ifdef LAB4
-	    	StartNProcess(*(argv + 1), 2);
-#else
+// #ifdef LAB4
+// 	    	StartNProcess(*(argv + 1), 2);
+// #else
             StartProcess(*(argv + 1));
-#endif
+// #endif
             argCount = 2;
         } else if (!strcmp(*argv, "-c")) {      // test the console
 	    if (argc == 1)

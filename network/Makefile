@@ -796,13 +796,13 @@ console.o: ../machine/console.cc \
  /usr/x86_64-linux-gnu/include/string.h \
  /usr/x86_64-linux-gnu/include/bits/types/locale_t.h \
  /usr/x86_64-linux-gnu/include/bits/types/__locale_t.h \
- /usr/x86_64-linux-gnu/include/strings.h ../threads/synch.h \
- ../threads/thread.h ../threads/utility.h ../machine/machine.h \
+ /usr/x86_64-linux-gnu/include/strings.h ../threads/system.h \
+ ../threads/utility.h ../threads/thread.h ../machine/machine.h \
  ../machine/translate.h ../machine/disk.h ../threads/list.h \
  ../userprog/bitmap.h ../userprog/addrspace.h ../filesys/filesys.h \
- ../filesys/openfile.h ../threads/list.h ../threads/system.h \
- ../threads/scheduler.h ../machine/interrupt.h ../machine/stats.h \
- ../machine/timer.h ../filesys/synchdisk.h ../machine/disk.h \
+ ../filesys/openfile.h ../threads/scheduler.h ../threads/list.h \
+ ../machine/interrupt.h ../machine/stats.h ../machine/timer.h \
+ ../filesys/synchdisk.h ../machine/disk.h ../threads/synch.h \
  ../network/post.h ../machine/network.h ../threads/synchlist.h \
  ../threads/synch.h
 machine.o: ../machine/machine.cc \

@@ -120,6 +120,14 @@ public:
     int namex(char *name, char *&fileName);
 #endif
 
+#ifdef LAB6
+    int OpenID(char *name);
+    void WriteID(char *buffer, int size, int index);
+    int ReadID(char *buffer, int size, int index);
+    void CloseID(int index);
+    void PrintID(int index);  // for debug
+#endif
+
 private:
    OpenFile* freeMapFile;		// Bit map of free disk blocks,
 					// represented as a file

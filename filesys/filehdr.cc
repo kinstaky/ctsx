@@ -207,6 +207,7 @@ bool FileHeader::Allocate(BitMap *freeMap, int fileSize) {
 
     numBytes += fileSize;
 //printf("%s:%d\n", __FILE__, __LINE__);
+//printf("Allocate success\n");
     return true;
 }
 

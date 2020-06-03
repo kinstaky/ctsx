@@ -257,26 +257,26 @@ int FileSystem::Create(char *name, int initialSize, int dirSector) {
 
     if (directory->Find(name) != -1) {
         success = FileExist;
-        printf("Create: file exist\n");
+        //printf("Create: file exist\n");
     } else {
         freeMap = new BitMap(NumSectors);
         freeMap->FetchFrom(freeMapFile);
         int sector = freeMap->Find();           // for file header
         if (sector == -1) {
             success = FileTooLarge;
-            printf("Create: no space for header\n");
+            //printf("Create: no space for header\n");
         } else if ((success = directory->Add(name, sector, freeMap)) != Success) {       // not enough space in directory or path error
             freeMap->Clear(sector);
-            printf("Create: no space for directory, error: %d\n", success);
+            //printf("Create: no space for directory, error: %d\n", success);
         }else {
             hdr = new FileHeader;
             if (!hdr->Allocate(freeMap, initialSize)) {         // not enough space for file data
                 success = FileTooLarge;
                 freeMap->Clear(sector);
                 ASSERT(directory->Remove(name) == Success);
-                printf("Create: no space for file\n");
+                //printf("Create: no space for file\n");
             } else {
-                printf("Create: success hdr in sector %d\n", sector);
+                //printf("Create: success hdr in sector %d\n", sector);
                 success = Success;
                 hdr->SetParent(dirSector);
                 hdr->WriteBack(sector);
@@ -534,7 +534,7 @@ int FileSystem::Remove(char *name, int dirSector) {
     directory->FetchFrom(dirFile);
     sector = directory->Find(name);
     if (sector == -1) {
-        printf("Remove: file not found\n");
+        //printf("Remove: file not found %s\n", name);
         delete directory;
         delete dirFile;
         return FileNotFound;
@@ -730,6 +730,7 @@ int FileSystem::Close(OpenFile *file) {
                 delete file;
                 fileTable[i].inUse = 0;
             }
+//printf("Closing, global open num is %d\n", fileTable[i].num);
             for (int j = 0; j != MAXOPEN; ++j) {
                 if (currentThread->OpenTable[j].inUse == 1 && currentThread->OpenTable[j].file == file) {
                     currentThread->OpenTable[j].inUse = 0;
@@ -742,4 +743,83 @@ int FileSystem::Close(OpenFile *file) {
     }
     return -1;          // file not found
 }
+#endif
+
+
+#ifdef LAB6
+int FileSystem::OpenID(char *name) {
+    OpenFile *file = Open(name);
+    int index = -1;
+    for (int i = 0; i != MAXFILEOPEN; ++i) {
+        if (fileTable[i].inUse == 1 && fileTable[i].file == file) {
+            index = i;
+            break;
+        }
+    }
+    ASSERT(index != -1);
+    return index+3;
+}
+
+void FileSystem::WriteID(char *buffer, int size, int index) {
+    if (index == 1) {
+        for (int i = 0; i != size; ++i) {
+            fprintf(stdout, "%c", buffer[i]);
+        }
+    } else if (index == 2) {
+        for (int i = 0; i != size; ++i) {
+            fprintf(stderr, "%c", buffer[i]);
+        }
+    } else if (index == 0) {
+        return;
+    } else {
+        index -= 3;
+        ASSERT(fileTable[index].inUse == 1);
+        OpenFile *file = fileTable[index].file;
+
+        BitMap *freeMap = new BitMap(NumSectors);
+        freeMap->FetchFrom(freeMapFile);
+
+        file->Write(buffer, size, freeMap);
+        file->hdr->WriteBack(fileTable[index].sector);
+
+        freeMap->WriteBack(freeMapFile);
+    }
+}
+
+int FileSystem::ReadID(char *buffer, int size, int index) {
+    if (index == 0) {
+        for (int i = 0; i != size; ++i) {
+            fscanf(stdin, "%c", buffer+i);
+        }
+    } else if (index == 1 || index == 2) {
+        return;
+    } else {
+        index -= 3;
+        ASSERT(fileTable[index].inUse == 1);
+        OpenFile *file = fileTable[index].file;
+
+        return file->Read(buffer, size);
+    }
+}
+
+void FileSystem::CloseID(int index) {
+    if (index < 3) return;
+    index -= 3;
+    ASSERT(fileTable[index].inUse == 1);
+    OpenFile *file = fileTable[index].file;
+    Close(file);
+    return;
+}
+
+void FileSystem::PrintID(int index) {
+    if (index < 3) return;
+    index -= 3;
+    ASSERT(fileTable[index].inUse == 1);
+    OpenFile *file = fileTable[index].file;
+    file->hdr->Print();
+    return;
+}
+
+
+
 #endif

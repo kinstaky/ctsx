@@ -165,6 +165,18 @@ private:
 
 #endif
 
+#ifdef LAB6
+#define MAXSPACE    16
+
+class Semaphore;
+
+struct SpaceEntry {
+    int inUse;
+    Semaphore *wait;
+};
+
+#endif
+
 // The following class defines the simulated host workstation hardware, as 
 // seen by user programs -- the CPU registers, main memory, etc.
 // User programs shouldn't be able to tell that they are running on our 
@@ -226,6 +238,10 @@ class Machine {
     void ClearVirtualPages(bool all = true);
 
     bool ReversePageTable;
+#endif
+
+#ifdef LAB6
+    SpaceEntry SpaceTable[MAXSPACE];
 #endif
 
 // Data structures -- all of these are accessible to Nachos kernel code.

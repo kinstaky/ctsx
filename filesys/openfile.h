@@ -110,8 +110,8 @@ class OpenFile {
     void ChangeSize(int size, BitMap *freeMap);
 #endif
 
-  private:
     FileHeader *hdr;			// Header for this file
+private:
     int seekPosition;			// Current position within the file
 #ifdef LAB5
     int hdrSector;

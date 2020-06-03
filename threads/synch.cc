@@ -68,6 +68,7 @@ Semaphore::P()
 
     while (value == 0) { 			// semaphore not available
 	queue->Append((void *)currentThread);	// so go to sleep
+//printf("semaphore %s sleep===================================================\n", name);
 	currentThread->Sleep();
     }
     value--; 					// semaphore available,
@@ -133,6 +134,7 @@ void Lock::Acquire() {
 
     while (owner != NULL && owner != currentThread) {            // lock hold by other thread
         queue->Append((void *)currentThread);   // so go to sleep
+//printf("lock %s sleep===================================================\n", name);
         currentThread->Sleep();
     }
     owner = currentThread;                    // lock available,

@@ -101,7 +101,7 @@ Machine::ReadMem(int addr, int size, int *value)
     switch (size) {
       case 1:
 	data = machine->mainMemory[physicalAddress];
-	*value = data;
+	*(char*)value = data;
 	break;
 	
       case 2:
@@ -149,7 +149,7 @@ Machine::WriteMem(int addr, int size, int value)
     }
     switch (size) {
       case 1:
-	machine->mainMemory[physicalAddress] = (unsigned char) (value & 0xff);
+	*(char*)&machine->mainMemory[physicalAddress] = (unsigned char) (value & 0xff);
 	break;
 
       case 2:

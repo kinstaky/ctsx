@@ -203,6 +203,10 @@ class Thread {
     void RestoreUserState();		// restore user-level register state
 
     AddrSpace *space;			// User code this thread is running.
+
+#ifdef LAB6
+    int SpaceId;
+#endif
 #endif
 #ifdef LAB5
     OpenEntry OpenTable[MAXOPEN];
